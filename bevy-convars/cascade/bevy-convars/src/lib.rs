@@ -1,5 +1,9 @@
 //! Provides an implementation of ConVars, a form of global configuration for an application.
 //!
+//! Intended for full applications, not for libraries!
+//! If you're a library author, the easiest and best way to integrate is simply to make your library configurable, and allow the end user to create convars themselves.
+//!
+//!
 //! # Example
 //! ```rust
 //! crate::cvar_collection! {
@@ -44,6 +48,8 @@
 //!
 //!    ...
 //!}
+
+#![deny(missing_docs)]
 
 use std::path::PathBuf;
 
@@ -154,6 +160,7 @@ impl CVarTreeNode {
     }
 }
 
+/// App resource that provides management information and functionality for CVars.
 #[derive(Default, Resource)]
 pub struct CVarManagement {
     /// An index of all cvar resources and their type registrations.
@@ -268,23 +275,30 @@ impl CVarManagement {
     }
 }
 
+/// Errors that can occur when manipulating CVars.
 #[derive(Error, Debug)]
 #[non_exhaustive]
 pub enum CVarError {
+    /// Error indicating a CVar was never registered or is invalid.
     #[error("Unknown CVar.")]
     UnknownCVar,
+    /// Error indicating the given CVar type is invalid.
     #[error(
         "CVar is not internally a Tuple Struct of the expected layout, did you try to register it manually?"
     )]
     BadCVarType,
+    /// Error indicating the CVar type is missing a [ComponentId] and is likely not registered correctly.
     #[error("Missing ComponentID, was the resource registered?")]
     MissingCid,
+    /// Error indicating the underlying type of the CVar cannot be deserialized, and as such cannot be reflected over.
     #[error("Underlying CVar type cannot be deserialized.")]
     CannotDeserialize,
+    /// Error indicating the CVar failed to deserialize.
     #[error("Failed to deserialize.")]
     FailedDeserialize(String),
 }
 
+/// Provides extensions to the world for CVars.
 pub trait WorldExtensions {
     #[doc(hidden)]
     fn as_world(&mut self) -> &mut World;
@@ -417,6 +431,7 @@ macro_rules! cvar_collection {
         #[derive($crate::reexports::bevy_ecs::system::SystemParam)]
         $collection_vis struct $cvar_collection_ident<'w> {
             $(
+                #[allow(missing_docs)]
                 pub $field_name: $crate::reexports::bevy_ecs::change_detection::Res<'w, $cvar_ident>
             ),*
         }
@@ -425,6 +440,7 @@ macro_rules! cvar_collection {
         #[derive($crate::reexports::bevy_ecs::system::SystemParam)]
         $collection_vis struct $cvar_collection_ident_mut<'w> {
             $(
+                #[allow(missing_docs)]
                 pub $field_name: $crate::reexports::bevy_ecs::change_detection::ResMut<'w, $cvar_ident>
             ),*
         }
@@ -474,13 +490,17 @@ macro_rules! cvar_collection {
 
 /// Static meta information about a cvar, like its contained type and path.
 pub trait CVarMeta: Resource + std::ops::Deref<Target = Self::Inner> {
+    /// The inner type of the CVar.
     type Inner: std::fmt::Debug;
+    /// The path of the CVar within the config.
     const CVAR_PATH: &'static str;
+    /// The flags applied to this CVar.
     fn flags() -> CVarFlags;
 }
 
 // TODO: Implement when we have a network stack.
 #[derive(Default, Resource)]
+#[doc(hidden)]
 pub struct CVarPeerData<T: CVarMeta> {
     _peers: HashMap<(), T>,
 }
@@ -524,6 +544,7 @@ cvar_collection! {
 
 #[cfg(feature = "config_loader")]
 cvar_collection! {
+    /// Collection of config-loader related CVars you can use as a system parameter.
     pub struct ConfigLoaderCVars & ConfigLoaderCVarsMut {
         /// Names of configuration layer files to load in atop the default config.
         /// # Remarks

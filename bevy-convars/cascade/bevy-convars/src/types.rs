@@ -1,10 +1,14 @@
-
 use bevy_reflect::Reflect;
 use std::ops;
 
-/// Bevy cannot reflect over bitflags!, so we do it the old fashioned way.
+/// Flags that can be applied to CVars.
+/// # Remarks
+/// Every flag above the 32nd bit is reserved for the user and will not be used without a major version update.
+///
+/// Every flag below is reserved to implementation.
+// Bevy cannot reflect over bitflags!, so we do it the old fashioned way.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Reflect)]
-pub struct CVarFlags(u32);
+pub struct CVarFlags(pub u64);
 
 impl CVarFlags {
     /// The no-op/default flag set.
@@ -13,11 +17,9 @@ impl CVarFlags {
     pub const SAVED: CVarFlags = CVarFlags(0b0000_0001);
     /// Indicates this cvar is for mirrored to and from peers for replication. Peers will know the value of this CVar for this client.
     pub const MIRRORED: CVarFlags = CVarFlags(0b0000_0010);
-    /// Indicates this cvar is replicated from the cloud service if available.
-    pub const FROM_CLOUD: CVarFlags = CVarFlags(0b0000_0100);
     /// Indicates this cvar is respected at runtime if modified. This is a hint of intent!
     /// CVars without this flag set should warn the user to restart the game.
-    pub const RUNTIME: CVarFlags = CVarFlags(0b0000_1000);
+    pub const RUNTIME: CVarFlags = CVarFlags(0b0000_0100);
 }
 
 impl ops::BitOr for CVarFlags {
@@ -37,6 +39,7 @@ impl ops::BitAnd for CVarFlags {
 }
 
 impl CVarFlags {
+    /// Returns true if the left flags contain (i.e. `a&b = b`) the right flags.
     pub fn contains(&self, other: CVarFlags) -> bool {
         let and = *self & other;
 
