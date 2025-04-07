@@ -44,13 +44,12 @@ pub fn read_write_convar_direct() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-
 #[cfg(feature = "parse_cvars")]
 #[test]
 pub fn write_convar_override() -> Result<(), Box<dyn Error>> {
     use std::str::FromStr as _;
 
-    use crate::{parse::CVarOverride, WorldExtensions};
+    use crate::{WorldExtensions, parse::CVarOverride};
 
     let mut app = make_test_app();
     let world = app.world_mut();
@@ -62,7 +61,9 @@ pub fn write_convar_override() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-#[should_panic(expected = "Attempted to insert a duplicate CVar. Consult backtrace for further information.")]
+#[should_panic(
+    expected = "Attempted to insert a duplicate CVar. Consult backtrace for further information."
+)]
 pub fn duplicate_cvar_registration() {
     cvar_collection! {
         /// Collection of test CVars you can use as a system argument.
@@ -72,7 +73,26 @@ pub fn duplicate_cvar_registration() {
         }
 
         /// Plugin that handles registering all the core CVars.
-        #[doc(hidden)]
+        pub struct ErrornousCVarsPlugin;
+    }
+
+    let mut app = make_test_app();
+    app.add_plugins(ErrornousCVarsPlugin);
+}
+
+#[test]
+#[should_panic(
+    expected = "Tried to insert leaf test_int into a terminating node. Is there a duplicate?"
+)]
+pub fn mixed_branch_and_leaf_cvar_registration() {
+    cvar_collection! {
+        /// Collection of test CVars you can use as a system argument.
+        pub struct ErrornousCVars & ErrornousCVarsMut {
+            /// Test numeric flag that should cause an error.
+            test_integer_branch_shadow = cvar TestInteger("testrig.test_int.shadowed", CVarFlags::LOCAL): i32 = 69,
+        }
+
+        /// Plugin that handles registering all the core CVars.
         pub struct ErrornousCVarsPlugin;
     }
 

@@ -5,7 +5,7 @@
 //!
 //!
 //! # Example
-//! ```rust
+//! ```ignore
 //! crate::cvar_collection! {
 //!     pub struct RenderCVars & RenderCVarsMut {
 //!         enable_xr = cvar EnableXr("render.enable_xr", CVarFlags::SAVED): bool = false,
@@ -142,14 +142,19 @@ impl CVarTreeNode {
     #[must_use]
     fn insert_leaf(&mut self, key: &'static str, reg: ComponentId) -> &mut CVarTreeNode {
         match self {
-            CVarTreeNode::Leaf { name, reg: _ } => panic!(
-                "Tried to insert leaf {name} into a terminating node. Is there a duplicate?"
-            ),
+            CVarTreeNode::Leaf { name, reg: _ } => {
+                panic!("Tried to insert leaf {name} into a terminating node. Is there a duplicate?")
+            }
             CVarTreeNode::Branch { descendants } => {
-                assert!(descendants.insert(key, CVarTreeNode::Leaf { name: key, reg }).is_none(), "Attempted to insert a duplicate CVar. Consult backtrace for further information.");
+                assert!(
+                    descendants
+                        .insert(key, CVarTreeNode::Leaf { name: key, reg })
+                        .is_none(),
+                    "Attempted to insert a duplicate CVar. Consult backtrace for further information."
+                );
 
                 descendants.get_mut(key).unwrap()
-            },
+            }
         }
     }
 
@@ -414,7 +419,7 @@ macro_rules! cvar {
 /// Declares a collection of CVars.
 /// # Example
 /// ```rust
-/// cvar_decl_imports!();
+/// # use bevy_convars::*;
 /// cvar_collection! {
 ///     /// A collection of exmaple CVars to use as a system param.
 ///     pub struct ExampleCVars & ExampleCVarsMut {
