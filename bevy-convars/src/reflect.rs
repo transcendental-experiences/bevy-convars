@@ -1,10 +1,21 @@
-//! Provides tools for reflecting over CVars types.
+//! Contains types for reflecting over CVars statically and dynamically.
 
 use std::any::TypeId;
 
+use bevy_ecs::system::Resource;
 use bevy_reflect::{FromType, PartialReflect};
 
-use crate::{CVarError, CVarFlags, CVarMeta};
+use crate::{CVarError, CVarFlags};
+
+/// Static meta information about a cvar, like its contained type and path.
+pub trait CVarMeta: Resource + std::ops::Deref<Target = Self::Inner> {
+    /// The inner type of the CVar.
+    type Inner: std::fmt::Debug;
+    /// The path of the CVar within the config.
+    const CVAR_PATH: &'static str;
+    /// The flags applied to this CVar.
+    fn flags() -> CVarFlags;
+}
 
 /// Provides bevy reflection metadata for CVars.
 #[derive(Clone)]

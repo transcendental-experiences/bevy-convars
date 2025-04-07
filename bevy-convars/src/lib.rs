@@ -52,25 +52,27 @@
 
 #![deny(missing_docs)]
 
-use std::ops::Deref;
-use std::path::PathBuf;
-
 use bevy_app::App;
 use bevy_app::prelude::*;
 use bevy_ecs::component::ComponentId;
 use bevy_ecs::prelude::*;
-use bevy_ecs::system::SystemParam;
 use bevy_reflect::{TypeRegistration, prelude::*};
 use bevy_utils::HashMap;
+use builtin::ConfigLoaderCVarsPlugin;
+use builtin::CoreCVarsPlugin;
+use builtin::LogCVarChanges;
 #[cfg(feature = "parse_cvars")]
 use parse::CVarOverride;
+use reflect::CVarMeta;
 use serde::Deserializer;
 use serde::de::IntoDeserializer as _;
 
 mod error;
+mod macros;
 mod types;
 pub use error::*;
 pub use types::*;
+pub mod builtin;
 pub mod parse;
 pub mod reflect;
 
@@ -405,159 +407,6 @@ impl Plugin for CVarsPlugin {
     }
 }
 
-/// Declares an individual CVar. you probably want the collection macro instead.
-#[macro_export]
-#[doc(hidden)]
-macro_rules! cvar {
-    ($(#[$cvar_doc:meta])*
-        $cvar_ident:ident($cvar_path:literal, $cvar_flags:expr): $cvar_ty:ty = $cvar_default:expr
-    ) => {
-        #[allow(unused_imports, reason = "Working around limitations of rust and bevy's macros.")]
-        use $crate::reexports::jank::*;
-
-        #[derive(
-            $crate::reexports::bevy_reflect::Reflect,
-        )]
-        #[reflect(Default__CALL_CVARDECLIMPORTS, Resource__CALL_CVARDECLIMPORTS, CVar__MACRO_JANK)]
-        $(
-            #[$cvar_doc]
-        )*
-        pub struct $cvar_ident($cvar_ty);
-
-        impl  $crate::reexports::bevy_ecs::system::Resource for $cvar_ident { }
-
-        impl ::std::ops::Deref for $cvar_ident {
-            type Target = $cvar_ty;
-
-            fn deref(&self) -> &Self::Target {
-                &self.0
-            }
-        }
-
-        impl ::std::ops::DerefMut for $cvar_ident {
-            fn deref_mut(&mut self) -> &mut Self::Target {
-                &mut self.0
-            }
-        }
-
-        impl ::std::default::Default for $cvar_ident {
-            fn default() -> Self {
-                Self($cvar_default)
-            }
-        }
-
-        impl $crate::CVarMeta for $cvar_ident {
-            type Inner = $cvar_ty;
-            const CVAR_PATH: &'static str = $cvar_path;
-            fn flags() -> CVarFlags {
-                $cvar_flags
-            }
-        }
-    };
-}
-
-/// Declares a collection of CVars.
-/// # Example
-/// ```rust
-/// # use bevy_convars::*;
-/// cvar_collection! {
-///     /// A collection of exmaple CVars to use as a system param.
-///     pub struct ExampleCVars & ExampleCVarsMut {
-///         /// An example CVar declaration.
-///         example_1 = cvar Example1("example.example_1", CVarFlags::SAVED): bool = true
-///     }
-///
-///     /// The plugin to register the example CVars.
-///     pub struct ExampleCVarsPlugin;
-/// }
-///
-/// ```
-#[macro_export]
-macro_rules! cvar_collection {
-    // macro moment
-    {
-        $(#[$collection_doc:meta])*
-        $collection_vis:vis struct $cvar_collection_ident:ident & $cvar_collection_ident_mut:ident {
-            $($(#[$cvar_doc:meta])*
-                $field_name:ident = cvar $cvar_ident:ident($cvar_path:literal, $cvar_flags:expr): $cvar_ty:ty = $cvar_default:expr
-            ),* $(,)?
-        }
-
-        $(#[$plugin_doc:meta])*
-        $plugin_vis:vis struct $cvar_collection_plugin:ident;
-    } => {
-        $(#[$collection_doc])*
-        #[derive($crate::reexports::bevy_ecs::system::SystemParam)]
-        $collection_vis struct $cvar_collection_ident<'w> {
-            $(
-                #[allow(missing_docs)]
-                #[allow(dead_code)]
-                pub $field_name: $crate::reexports::bevy_ecs::change_detection::Res<'w, $cvar_ident>
-            ),*
-        }
-
-        $(#[$collection_doc])*
-        #[derive($crate::reexports::bevy_ecs::system::SystemParam)]
-        $collection_vis struct $cvar_collection_ident_mut<'w> {
-            $(
-                #[allow(missing_docs)]
-                #[allow(dead_code)]
-                pub $field_name: $crate::reexports::bevy_ecs::change_detection::ResMut<'w, $cvar_ident>
-            ),*
-        }
-
-        $(
-            $crate::cvar!($(#[$cvar_doc])* $cvar_ident($cvar_path, $cvar_flags): $cvar_ty = $cvar_default);
-        )*
-
-        $(#[$plugin_doc])*
-        #[derive(::std::default::Default)]
-        $plugin_vis struct $cvar_collection_plugin;
-
-        impl $crate::reexports::bevy_app::prelude::Plugin for $cvar_collection_plugin {
-            fn build(&self, app: &mut $crate::reexports::bevy_app::prelude::App) {
-                let mut management = app.world_mut().remove_resource::<$crate::CVarManagement>().unwrap();
-                $(
-                    app.register_type::<$cvar_ident>();
-                    app.insert_resource::<$cvar_ident>($cvar_ident::default());
-                    management.register_cvar::<$cvar_ident>(app);
-                    // Yes, these always run. I doubt it matters, but they do.
-                    app.add_systems($crate::reexports::bevy_app::prelude::Last,
-                        $crate::cvar_modified_system::<$cvar_ident>
-                    );
-                    if ($cvar_flags).contains($crate::CVarFlags::SAVED) {
-                        let type_registry = app.world().resource::<$crate::reexports::bevy_ecs::prelude::AppTypeRegistry>().read();
-
-                        ::std::assert!(
-                            type_registry.get_type_data::<$crate::reexports::bevy_reflect::ReflectDeserialize>(::std::any::TypeId::of::<$cvar_ty>()).is_some(),
-                            "CVar {} was registered as being a SAVED or MIRRORED cvar, but its value lacks reflection deserialization.",
-                            stringify!($cvar_ident)
-                        );
-
-                        ::std::assert!(
-                            type_registry.get_type_data::<$crate::reexports::bevy_reflect::ReflectSerialize>(::std::any::TypeId::of::<$cvar_ty>()).is_some(),
-                            "CVar {} was registered as being a SAVED or MIRRORED cvar, but its value lacks reflection serialization.",
-                            stringify!($cvar_ident)
-                        );
-                    }
-                )*
-
-                app.world_mut().insert_resource(management);
-            }
-        }
-    };
-}
-
-/// Static meta information about a cvar, like its contained type and path.
-pub trait CVarMeta: Resource + std::ops::Deref<Target = Self::Inner> {
-    /// The inner type of the CVar.
-    type Inner: std::fmt::Debug;
-    /// The path of the CVar within the config.
-    const CVAR_PATH: &'static str;
-    /// The flags applied to this CVar.
-    fn flags() -> CVarFlags;
-}
-
 /// Internal function meant for the macros. Don't use this!
 /// Handles reporting CVar changes if LogCVarChanges is set.
 #[doc(hidden)]
@@ -581,35 +430,4 @@ pub fn cvar_modified_system<T: CVarMeta>(
             bevy_log::error!("Non-runtime, non-saved CVar was modified! This will have NO EFFECT.");
         }
     }
-}
-
-cvar_collection! {
-    /// Collection of core CVars you can use as a system argument.
-    pub struct CoreCVars & CoreCVarsMut {
-        /// Enables logging ALL cvar modifications. This will log the change as info.
-        log_cvar_changes = cvar LogCVarChanges("core.log_cvar_changes", CVarFlags::LOCAL | CVarFlags::RUNTIME): bool = false,
-    }
-
-    /// Plugin that handles registering all the core CVars.
-    #[doc(hidden)]
-    pub struct CoreCVarsPlugin;
-}
-
-static_assertions::assert_impl_all!(CoreCVars: SystemParam);
-static_assertions::assert_impl_all!(CoreCVarsPlugin: Plugin);
-static_assertions::assert_impl_all!(LogCVarChanges: Resource, Deref<Target = bool>);
-
-#[cfg(feature = "config_loader")]
-cvar_collection! {
-    /// Collection of config-loader related CVars you can use as a system parameter.
-    pub struct ConfigLoaderCVars & ConfigLoaderCVarsMut {
-        /// Names of configuration layer files to load in atop the default config.
-        /// # Remarks
-        /// Unlike basically all other CVars, this one cannot be set by file layers, because it defines them.
-        config_layers = cvar ConfigLayers("core.config_layers", CVarFlags::LOCAL): Vec<PathBuf> = vec![],
-    }
-
-    /// Plugin that handles registering all the config loader CVars.
-    #[doc(hidden)]
-    pub struct ConfigLoaderCVarsPlugin;
 }

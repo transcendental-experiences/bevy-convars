@@ -12,7 +12,7 @@ pub enum CVarError {
         "CVar is not internally a Tuple Struct of the expected layout, did you try to register it manually?"
     )]
     BadCVarType,
-    /// Error indicating the CVar type is missing a [ComponentId] and is likely not registered correctly.
+    /// Error indicating the CVar type is missing a [ComponentId](bevy_ecs::component::ComponentId) and is likely not registered correctly.
     #[error("Missing ComponentID, was the resource registered?")]
     MissingCid,
     /// Error indicating the underlying type of the CVar cannot be deserialized, and as such cannot be reflected over.
