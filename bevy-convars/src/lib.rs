@@ -64,6 +64,7 @@ use bevy_reflect::{TypeRegistration, prelude::*};
 use bevy_utils::HashMap;
 #[cfg(feature = "parse_cvars")]
 use parse::CVarOverride;
+use serde::Deserializer;
 use serde::de::IntoDeserializer as _;
 use thiserror::Error;
 
@@ -232,12 +233,11 @@ impl CVarManagement {
         let ty_info = self.resources.get(&cid)?;
 
         let reflect_res = ty_info.data::<ReflectResource>()?;
+        let reflect_cvar = ty_info.data::<reflect::ReflectCVar>()?;
 
         let res = reflect_res.reflect(world)?;
 
-        let val = res.reflect_ref().as_tuple_struct().unwrap().field(0)?;
-
-        val.try_as_reflect()
+        reflect_cvar.reflect_inner(res).unwrap().try_as_reflect()
     }
 
     /// Gets a CVar's value mutably through reflection.
@@ -254,26 +254,50 @@ impl CVarManagement {
         let ty_info = self.resources.get(&cid)?;
 
         let reflect_res = ty_info.data::<ReflectResource>()?;
+        let reflect_cvar = ty_info.data::<reflect::ReflectCVar>()?;
 
         Some(reflect_res.reflect_mut(world)?.map_unchanged(|x| {
-            x.reflect_mut()
-                .as_tuple_struct()
-                .unwrap()
-                .field_mut(0)
+            reflect_cvar
+                .reflect_inner_mut(x)
                 .unwrap()
                 .try_as_reflect_mut()
                 .unwrap()
         }))
     }
 
-    /// Set a CVar to the given deserializable value using reflection.
+    /// Set a CVar to the given reflected value using reflection.
     /// # Remarks
     /// Use the WorldExtensions version if you can, it handles the invariants. This is harder to call than it looks due to needing mutable world.
-    pub fn set_cvar_reflect<'w, 'a>(
+    pub fn set_cvar_reflect(
         &self,
         world: &mut World,
         cvar: &str,
-        value: impl serde::Deserializer<'a>,
+        value: &dyn Reflect,
+    ) -> Result<(), CVarError> {
+        let cid = self.tree.get(cvar).ok_or(CVarError::UnknownCVar)?;
+
+        let ty_reg = self.resources.get(&cid).ok_or(CVarError::MissingCid)?;
+
+        let reflect_cvar = ty_reg.data::<reflect::ReflectCVar>().unwrap();
+
+        let reflect_res = ty_reg.data::<ReflectResource>().unwrap();
+
+        let cvar = reflect_res
+            .reflect_mut(world)
+            .ok_or(CVarError::BadCVarType)?;
+
+        reflect_cvar.reflect_apply(cvar.into_inner(), value)?;
+
+        Ok(())
+    }
+    /// Set a CVar to the given deserializable value using reflection.
+    /// # Remarks
+    /// Use the WorldExtensions version if you can, it handles the invariants. This is harder to call than it looks due to needing mutable world.
+    pub fn set_cvar_deserialize<'w, 'a>(
+        &self,
+        world: &mut World,
+        cvar: &str,
+        value: impl Deserializer<'a>,
     ) -> Result<(), CVarError> {
         let cid = self.tree.get(cvar).ok_or(CVarError::UnknownCVar)?;
 
@@ -338,10 +362,23 @@ pub trait WorldExtensions {
     fn as_world(&mut self) -> &mut World;
 
     /// Set a CVar on the world through reflection, by deserializing the provided data into it.
-    fn set_cvar_reflect<'a>(
+    fn set_cvar_deserialize<'a>(
         &mut self,
         cvar: &str,
         value: impl serde::Deserializer<'a>,
+    ) -> Result<(), CVarError> {
+        let cell = self.as_world();
+
+        cell.resource_scope::<CVarManagement, _>(|w, management| {
+            management.set_cvar_deserialize(w, cvar, value)
+        })
+    }
+
+    /// Set a CVar on the world through reflection
+    fn set_cvar_reflect(
+        &mut self,
+        cvar: &str,
+        value: &dyn Reflect,
     ) -> Result<(), CVarError> {
         let cell = self.as_world();
 
@@ -356,7 +393,11 @@ pub trait WorldExtensions {
         let cell = self.as_world();
 
         cell.resource_scope::<CVarManagement, _>(|w, management| {
-            management.set_cvar_reflect(w, &r#override.0, r#override.1.clone().into_deserializer())
+            management.set_cvar_deserialize(
+                w,
+                &r#override.0,
+                r#override.1.clone().into_deserializer(),
+            )
         })
     }
 }

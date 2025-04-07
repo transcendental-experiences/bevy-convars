@@ -54,7 +54,7 @@ pub fn write_convar_reflect() -> Result<(), Box<dyn Error>> {
     let mut app = make_test_app();
     let world = app.world_mut();
 
-    world.set_cvar_reflect(TestInteger::CVAR_PATH, ValueDeserializer::from_str("37")?)?;
+    world.set_cvar_deserialize(TestInteger::CVAR_PATH, ValueDeserializer::from_str("37")?)?;
 
     assert_eq!(**world.resource::<TestInteger>(), 37);
     Ok(())
@@ -69,7 +69,7 @@ pub fn write_convar_reflect_unknown_convar() -> Result<(), Box<dyn Error>> {
     let mut app = make_test_app();
     let world = app.world_mut();
 
-    let e = world.set_cvar_reflect("testrig.not_real", ValueDeserializer::from_str("37")?);
+    let e = world.set_cvar_deserialize("testrig.not_real", ValueDeserializer::from_str("37")?);
 
     assert!(
         matches!(e, Err(CVarError::UnknownCVar)),
@@ -89,7 +89,7 @@ pub fn write_convar_reflect_wrong_type() -> Result<(), Box<dyn Error>> {
     let mut app = make_test_app();
     let world = app.world_mut();
 
-    let e = world.set_cvar_reflect(
+    let e = world.set_cvar_deserialize(
         TestInteger::CVAR_PATH,
         ValueDeserializer::from_str("\"awawa\"")?,
     );
