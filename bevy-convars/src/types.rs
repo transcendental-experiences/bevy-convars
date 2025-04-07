@@ -40,6 +40,7 @@ impl ops::BitAnd for CVarFlags {
 
 impl CVarFlags {
     /// Returns true if the left flags contain (i.e. `a&b = b`) the right flags.
+    #[must_use]
     pub fn contains(&self, other: CVarFlags) -> bool {
         let and = *self & other;
 

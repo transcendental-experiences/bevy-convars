@@ -11,6 +11,7 @@ bevy_log = "0.15.3"
 bevy_utils = "0.15.3"
 thiserror = "2.0"
 serde = "1"
+static_assertions = "1.1.0"
 toml_edit = { version = "0.22", features = ["serde"], optional = true }
 
 [features]

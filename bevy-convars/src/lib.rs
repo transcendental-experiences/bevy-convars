@@ -52,12 +52,14 @@
 
 #![deny(missing_docs)]
 
+use std::ops::Deref;
 use std::path::PathBuf;
 
 use bevy_app::App;
 use bevy_app::prelude::*;
 use bevy_ecs::component::ComponentId;
 use bevy_ecs::prelude::*;
+use bevy_ecs::system::SystemParam;
 use bevy_reflect::{DynamicTupleStruct, TypeRegistration, prelude::*};
 use bevy_utils::HashMap;
 #[cfg(feature = "parse_cvars")]
@@ -68,6 +70,9 @@ use thiserror::Error;
 mod types;
 pub use types::*;
 pub mod parse;
+
+#[cfg(test)]
+mod tests;
 
 /// Internal re-exports to avoid depending on the user's scope.
 #[doc(hidden)]
@@ -112,13 +117,15 @@ impl CVarTreeNode {
         let mut cur = self;
         for (idx, segment) in segments.iter().enumerate() {
             if idx == segments.len() - 1 {
-                cur.insert_leaf(segment, id);
+                let _ = cur.insert_leaf(segment, id);
+                return;
             } else {
                 cur = cur.get_or_insert_branch(segment);
             }
         }
     }
 
+    #[must_use]
     fn get_or_insert_branch(&mut self, key: &'static str) -> &mut CVarTreeNode {
         match self {
             CVarTreeNode::Leaf { name, reg: _ } => panic!(
@@ -132,17 +139,21 @@ impl CVarTreeNode {
         }
     }
 
+    #[must_use]
     fn insert_leaf(&mut self, key: &'static str, reg: ComponentId) -> &mut CVarTreeNode {
         match self {
             CVarTreeNode::Leaf { name, reg: _ } => panic!(
-                "Tried to insert leaf {name} into a terminating node. A CVar cannot be both a value and table."
+                "Tried to insert leaf {name} into a terminating node. Is there a duplicate?"
             ),
-            CVarTreeNode::Branch { descendants } => descendants
-                .entry(key)
-                .or_insert(CVarTreeNode::Leaf { name: key, reg }),
+            CVarTreeNode::Branch { descendants } => {
+                assert!(descendants.insert(key, CVarTreeNode::Leaf { name: key, reg }).is_none(), "Attempted to insert a duplicate CVar. Consult backtrace for further information.");
+
+                descendants.get_mut(key).unwrap()
+            },
         }
     }
 
+    #[must_use]
     pub fn get(&self, name: &str) -> Option<ComponentId> {
         let mut cur = self;
         for seg in name.split('.') {
@@ -188,6 +199,7 @@ impl CVarManagement {
     /// Gets a CVar's value through reflection.
     /// # Remarks
     /// This returns the inner value, not the cvar resource itself.
+    #[must_use]
     pub fn get_cvar_reflect<'a>(&self, world: &'a World, cvar: &str) -> Option<&'a dyn Reflect> {
         let cid = self.tree.get(cvar)?;
 
@@ -205,6 +217,7 @@ impl CVarManagement {
     /// Gets a CVar's value mutably through reflection.
     /// # Remarks
     /// This returns the inner value, not the cvar resource itself.
+    #[must_use]
     pub fn get_cvar_reflect_mut<'a>(
         &self,
         world: &'a mut World,
@@ -433,6 +446,7 @@ macro_rules! cvar_collection {
         $collection_vis struct $cvar_collection_ident<'w> {
             $(
                 #[allow(missing_docs)]
+                #[allow(dead_code)]
                 pub $field_name: $crate::reexports::bevy_ecs::change_detection::Res<'w, $cvar_ident>
             ),*
         }
@@ -442,6 +456,7 @@ macro_rules! cvar_collection {
         $collection_vis struct $cvar_collection_ident_mut<'w> {
             $(
                 #[allow(missing_docs)]
+                #[allow(dead_code)]
                 pub $field_name: $crate::reexports::bevy_ecs::change_detection::ResMut<'w, $cvar_ident>
             ),*
         }
@@ -542,6 +557,10 @@ cvar_collection! {
     #[doc(hidden)]
     pub struct CoreCVarsPlugin;
 }
+
+static_assertions::assert_impl_all!(CoreCVars: SystemParam);
+static_assertions::assert_impl_all!(CoreCVarsPlugin: Plugin);
+static_assertions::assert_impl_all!(LogCVarChanges: Resource, Deref<Target = bool>);
 
 #[cfg(feature = "config_loader")]
 cvar_collection! {
