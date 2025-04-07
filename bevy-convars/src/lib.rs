@@ -237,7 +237,10 @@ impl CVarManagement {
 
         let res = reflect_res.reflect(world)?;
 
-        reflect_cvar.reflect_inner(res).unwrap().try_as_reflect()
+        reflect_cvar
+            .reflect_inner(res.as_partial_reflect())
+            .unwrap()
+            .try_as_reflect()
     }
 
     /// Gets a CVar's value mutably through reflection.
@@ -258,7 +261,7 @@ impl CVarManagement {
 
         Some(reflect_res.reflect_mut(world)?.map_unchanged(|x| {
             reflect_cvar
-                .reflect_inner_mut(x)
+                .reflect_inner_mut(x.as_partial_reflect_mut())
                 .unwrap()
                 .try_as_reflect_mut()
                 .unwrap()
@@ -286,7 +289,10 @@ impl CVarManagement {
             .reflect_mut(world)
             .ok_or(CVarError::BadCVarType)?;
 
-        reflect_cvar.reflect_apply(cvar.into_inner(), value)?;
+        reflect_cvar.reflect_apply(
+            cvar.into_inner().as_partial_reflect_mut(),
+            value.as_partial_reflect(),
+        )?;
 
         Ok(())
     }
