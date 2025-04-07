@@ -246,6 +246,7 @@ impl CVarManagement {
     /// Gets a CVar's value mutably through reflection.
     /// # Remarks
     /// This returns the inner value, not the cvar resource itself.
+    /// A change-detection aware handle is returned.
     #[must_use]
     pub fn get_cvar_reflect_mut<'a>(
         &self,
