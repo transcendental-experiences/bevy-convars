@@ -60,7 +60,7 @@ use bevy_app::prelude::*;
 use bevy_ecs::component::ComponentId;
 use bevy_ecs::prelude::*;
 use bevy_ecs::system::SystemParam;
-use bevy_reflect::{DynamicTupleStruct, TypeRegistration, prelude::*};
+use bevy_reflect::{TypeRegistration, prelude::*};
 use bevy_utils::HashMap;
 #[cfg(feature = "parse_cvars")]
 use parse::CVarOverride;
@@ -70,6 +70,7 @@ use thiserror::Error;
 mod types;
 pub use types::*;
 pub mod parse;
+pub mod reflect;
 
 #[cfg(test)]
 mod tests;
@@ -81,6 +82,7 @@ pub mod reexports {
     pub use bevy_ecs;
     pub use bevy_reflect;
     pub mod jank {
+        pub use crate::reflect::ReflectCVar as ReflectCVar__MACRO_JANK;
         pub use bevy_ecs::reflect::ReflectResource as ReflectResource__CALL_CVARDECLIMPORTS;
         pub use bevy_reflect::prelude::ReflectDefault as ReflectDefault__CALL_CVARDECLIMPORTS;
     }
@@ -277,14 +279,10 @@ impl CVarManagement {
 
         let ty_reg = self.resources.get(&cid).ok_or(CVarError::MissingCid)?;
 
-        let value_patch = {
-            let tuple = ty_reg
-                .type_info()
-                .as_tuple_struct()
-                .or(Err(CVarError::BadCVarType))?;
+        let reflect_cvar = ty_reg.data::<reflect::ReflectCVar>().unwrap();
 
-            let field_0 = tuple.field_at(0).ok_or(CVarError::BadCVarType)?;
-            let field_0 = field_0.type_id();
+        let value_patch = {
+            let field_0 = reflect_cvar.inner_type();
 
             let registry = world.resource::<AppTypeRegistry>().read();
 
@@ -294,20 +292,18 @@ impl CVarManagement {
                 .data::<ReflectDeserialize>()
                 .ok_or(CVarError::CannotDeserialize)?;
 
-            let field_0_val = deserializer
+            deserializer
                 .deserialize(value)
-                .map_err(|e| CVarError::FailedDeserialize(format!("{e:?}")))?;
-
-            let mut patch = DynamicTupleStruct::default();
-
-            patch.insert_boxed(field_0_val.into_partial_reflect());
-
-            patch
+                .map_err(|e| CVarError::FailedDeserialize(format!("{e:?}")))?
         };
 
-        let reflect_ptr = ty_reg.data::<ReflectResource>().unwrap();
+        let reflect_res = ty_reg.data::<ReflectResource>().unwrap();
 
-        reflect_ptr.apply(world, &value_patch);
+        let cvar = reflect_res
+            .reflect_mut(world)
+            .ok_or(CVarError::BadCVarType)?;
+
+        reflect_cvar.reflect_apply(cvar.into_inner(), &*value_patch)?;
 
         Ok(())
     }
@@ -397,7 +393,7 @@ macro_rules! cvar {
         #[derive(
             $crate::reexports::bevy_reflect::Reflect,
         )]
-        #[reflect(Default__CALL_CVARDECLIMPORTS, Resource__CALL_CVARDECLIMPORTS)]
+        #[reflect(Default__CALL_CVARDECLIMPORTS, Resource__CALL_CVARDECLIMPORTS, CVar__MACRO_JANK)]
         $(
             #[$cvar_doc]
         )*
@@ -499,7 +495,6 @@ macro_rules! cvar_collection {
                 $(
                     app.register_type::<$cvar_ident>();
                     app.insert_resource::<$cvar_ident>($cvar_ident::default());
-                    app.insert_resource::<$crate::CVarPeerData<$cvar_ident>>($crate::CVarPeerData::<$cvar_ident>::default());
                     management.register_cvar::<$cvar_ident>(app);
                     // Yes, these always run. I doubt it matters, but they do.
                     app.add_systems($crate::reexports::bevy_app::prelude::Last,
@@ -536,13 +531,6 @@ pub trait CVarMeta: Resource + std::ops::Deref<Target = Self::Inner> {
     const CVAR_PATH: &'static str;
     /// The flags applied to this CVar.
     fn flags() -> CVarFlags;
-}
-
-// TODO: Implement when we have a network stack.
-#[derive(Default, Resource)]
-#[doc(hidden)]
-pub struct CVarPeerData<T: CVarMeta> {
-    _peers: HashMap<(), T>,
 }
 
 /// Internal function meant for the macros. Don't use this!
