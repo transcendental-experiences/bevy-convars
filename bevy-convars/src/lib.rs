@@ -327,7 +327,10 @@ impl CVarManagement {
             .reflect_mut(world)
             .ok_or(CVarError::BadCVarType)?;
 
-        reflect_cvar.reflect_apply(cvar.into_inner(), &*value_patch)?;
+        reflect_cvar.reflect_apply(
+            cvar.into_inner().as_partial_reflect_mut(),
+            value_patch.as_partial_reflect(),
+        )?;
 
         Ok(())
     }
@@ -375,11 +378,7 @@ pub trait WorldExtensions {
     }
 
     /// Set a CVar on the world through reflection
-    fn set_cvar_reflect(
-        &mut self,
-        cvar: &str,
-        value: &dyn Reflect,
-    ) -> Result<(), CVarError> {
+    fn set_cvar_reflect(&mut self, cvar: &str, value: &dyn Reflect) -> Result<(), CVarError> {
         let cell = self.as_world();
 
         cell.resource_scope::<CVarManagement, _>(|w, management| {
