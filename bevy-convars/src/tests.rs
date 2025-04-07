@@ -62,7 +62,7 @@ pub fn write_convar_override() -> Result<(), Box<dyn Error>> {
 
 #[test]
 #[should_panic(
-    expected = "Attempted to insert a duplicate CVar. Consult backtrace for further information."
+    expected = "Attempted to insert a duplicate CVar. CVar in question is testrig.test_int"
 )]
 pub fn duplicate_cvar_registration() {
     cvar_collection! {
@@ -82,7 +82,7 @@ pub fn duplicate_cvar_registration() {
 
 #[test]
 #[should_panic(
-    expected = "Tried to insert leaf test_int into a terminating node. Is there a duplicate?"
+    expected = "Tried to insert leaf test_int into a terminating node. Is there a duplicate or overlap? CVar in question is testrig.test_int.shadowed"
 )]
 pub fn mixed_branch_and_leaf_cvar_registration() {
     cvar_collection! {

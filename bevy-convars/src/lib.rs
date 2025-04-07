@@ -110,26 +110,31 @@ impl Default for CVarTreeNode {
     }
 }
 
+struct CVarTreeEditContext {
+    new_cvar: &'static str
+}
+
 impl CVarTreeNode {
     pub fn insert(&mut self, name: &'static str, id: ComponentId) {
         let segments: Vec<&'static str> = name.split('.').collect();
+        let edit_ctx = CVarTreeEditContext { new_cvar: name };
 
         let mut cur = self;
         for (idx, segment) in segments.iter().enumerate() {
             if idx == segments.len() - 1 {
-                let _ = cur.insert_leaf(segment, id);
+                let _ = cur.insert_leaf(segment, id, &edit_ctx);
                 return;
             } else {
-                cur = cur.get_or_insert_branch(segment);
+                cur = cur.get_or_insert_branch(segment, &edit_ctx);
             }
         }
     }
 
     #[must_use]
-    fn get_or_insert_branch(&mut self, key: &'static str) -> &mut CVarTreeNode {
+    fn get_or_insert_branch(&mut self, key: &'static str, ctx: &CVarTreeEditContext) -> &mut CVarTreeNode {
         match self {
             CVarTreeNode::Leaf { name, reg: _ } => panic!(
-                "Tried to insert branch {name} into a terminating node. A CVar cannot be both a value and table."
+                "Tried to insert branch {name} into a terminating node. A CVar cannot be both a value and table. CVar in question is {}", ctx.new_cvar
             ),
             CVarTreeNode::Branch { descendants } => {
                 descendants.entry(key).or_insert(CVarTreeNode::Branch {
@@ -140,17 +145,18 @@ impl CVarTreeNode {
     }
 
     #[must_use]
-    fn insert_leaf(&mut self, key: &'static str, reg: ComponentId) -> &mut CVarTreeNode {
+    fn insert_leaf(&mut self, key: &'static str, reg: ComponentId, ctx: &CVarTreeEditContext) -> &mut CVarTreeNode {
         match self {
             CVarTreeNode::Leaf { name, reg: _ } => {
-                panic!("Tried to insert leaf {name} into a terminating node. Is there a duplicate?")
+                panic!("Tried to insert leaf {name} into a terminating node. Is there a duplicate or overlap? CVar in question is {}", ctx.new_cvar)
             }
             CVarTreeNode::Branch { descendants } => {
                 assert!(
                     descendants
                         .insert(key, CVarTreeNode::Leaf { name: key, reg })
                         .is_none(),
-                    "Attempted to insert a duplicate CVar. Consult backtrace for further information."
+                    "Attempted to insert a duplicate CVar. CVar in question is {}",
+                    ctx.new_cvar
                 );
 
                 descendants.get_mut(key).unwrap()
