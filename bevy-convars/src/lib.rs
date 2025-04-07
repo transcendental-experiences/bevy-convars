@@ -300,7 +300,7 @@ impl CVarManagement {
 
             let mut patch = DynamicTupleStruct::default();
 
-            patch.insert_boxed(field_0_val);
+            patch.insert_boxed(field_0_val.into_partial_reflect());
 
             patch
         };
