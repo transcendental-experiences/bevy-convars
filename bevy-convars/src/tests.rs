@@ -8,18 +8,18 @@ use crate::{CVarFlags, CVarsPlugin, cvar_collection};
 const TEST_INTEGER_INIT_VAL: i32 = -5;
 
 cvar_collection! {
-        /// Collection of test CVars you can use as a system argument.
-        pub struct TestCVars & TestCVarsMut {
-            /// Test boolean flag.
-            test_bool = cvar TestBool("testrig.test_bool", CVarFlags::LOCAL | CVarFlags::RUNTIME): bool = true,
+    /// Collection of test CVars you can use as a system argument.
+    pub struct TestCVars & TestCVarsMut {
+        /// Test boolean flag.
+        test_bool = cvar TestBool("testrig.test_bool", CVarFlags::LOCAL | CVarFlags::RUNTIME): bool = true,
 
-            /// Test numeric flag
-            test_integer = cvar TestInteger("testrig.test_int", CVarFlags::LOCAL | CVarFlags::RUNTIME): i32 = TEST_INTEGER_INIT_VAL,
-        }
+        /// Test numeric flag
+        test_integer = cvar TestInteger("testrig.test_int", CVarFlags::LOCAL | CVarFlags::RUNTIME): i32 = TEST_INTEGER_INIT_VAL,
+    }
 
-        /// Plugin that handles registering all the core CVars.
-        #[doc(hidden)]
-        pub struct TestCVarsPlugin;
+    /// Plugin that handles registering all the core CVars.
+    #[doc(hidden)]
+    pub struct TestCVarsPlugin;
 }
 
 #[must_use]

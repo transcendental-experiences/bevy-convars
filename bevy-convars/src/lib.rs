@@ -111,7 +111,7 @@ impl Default for CVarTreeNode {
 }
 
 struct CVarTreeEditContext {
-    new_cvar: &'static str
+    new_cvar: &'static str,
 }
 
 impl CVarTreeNode {
@@ -131,10 +131,15 @@ impl CVarTreeNode {
     }
 
     #[must_use]
-    fn get_or_insert_branch(&mut self, key: &'static str, ctx: &CVarTreeEditContext) -> &mut CVarTreeNode {
+    fn get_or_insert_branch(
+        &mut self,
+        key: &'static str,
+        ctx: &CVarTreeEditContext,
+    ) -> &mut CVarTreeNode {
         match self {
             CVarTreeNode::Leaf { name, reg: _ } => panic!(
-                "Tried to insert branch {name} into a terminating node. A CVar cannot be both a value and table. CVar in question is {}", ctx.new_cvar
+                "Tried to insert branch {name} into a terminating node. A CVar cannot be both a value and table. CVar in question is {}",
+                ctx.new_cvar
             ),
             CVarTreeNode::Branch { descendants } => {
                 descendants.entry(key).or_insert(CVarTreeNode::Branch {
@@ -145,10 +150,18 @@ impl CVarTreeNode {
     }
 
     #[must_use]
-    fn insert_leaf(&mut self, key: &'static str, reg: ComponentId, ctx: &CVarTreeEditContext) -> &mut CVarTreeNode {
+    fn insert_leaf(
+        &mut self,
+        key: &'static str,
+        reg: ComponentId,
+        ctx: &CVarTreeEditContext,
+    ) -> &mut CVarTreeNode {
         match self {
             CVarTreeNode::Leaf { name, reg: _ } => {
-                panic!("Tried to insert leaf {name} into a terminating node. Is there a duplicate or overlap? CVar in question is {}", ctx.new_cvar)
+                panic!(
+                    "Tried to insert leaf {name} into a terminating node. Is there a duplicate or overlap? CVar in question is {}",
+                    ctx.new_cvar
+                )
             }
             CVarTreeNode::Branch { descendants } => {
                 assert!(
