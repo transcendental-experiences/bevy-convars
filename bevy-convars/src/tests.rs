@@ -3,7 +3,7 @@ use std::error::Error;
 use bevy_app::App;
 use toml_edit::de::ValueDeserializer;
 
-use crate::{CVarFlags, CVarsPlugin, cvar_collection};
+use crate::{CVarError, CVarFlags, CVarMeta, CVarsPlugin, cvar_collection};
 
 const TEST_INTEGER_INIT_VAL: i32 = -5;
 
@@ -54,9 +54,52 @@ pub fn write_convar_reflect() -> Result<(), Box<dyn Error>> {
     let mut app = make_test_app();
     let world = app.world_mut();
 
-    world.set_cvar_reflect("testrig.test_int", ValueDeserializer::from_str("37")?)?;
+    world.set_cvar_reflect(TestInteger::CVAR_PATH, ValueDeserializer::from_str("37")?)?;
 
     assert_eq!(**world.resource::<TestInteger>(), 37);
+    Ok(())
+}
+
+#[test]
+pub fn write_convar_reflect_unknown_convar() -> Result<(), Box<dyn Error>> {
+    use std::str::FromStr as _;
+
+    use crate::WorldExtensions;
+
+    let mut app = make_test_app();
+    let world = app.world_mut();
+
+    let e = world.set_cvar_reflect("testrig.not_real", ValueDeserializer::from_str("37")?);
+
+    assert!(
+        matches!(e, Err(CVarError::UnknownCVar)),
+        "{} failed to match UnknownCVar.",
+        e.err().unwrap()
+    );
+
+    Ok(())
+}
+
+#[test]
+pub fn write_convar_reflect_wrong_type() -> Result<(), Box<dyn Error>> {
+    use std::str::FromStr as _;
+
+    use crate::WorldExtensions;
+
+    let mut app = make_test_app();
+    let world = app.world_mut();
+
+    let e = world.set_cvar_reflect(
+        TestInteger::CVAR_PATH,
+        ValueDeserializer::from_str("\"awawa\"")?,
+    );
+
+    assert!(
+        matches!(e, Err(CVarError::FailedDeserialize(_))),
+        "{} failed to match FailedDeserialize.",
+        e.err().unwrap()
+    );
+
     Ok(())
 }
 
