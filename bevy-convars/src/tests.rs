@@ -1,6 +1,7 @@
 use std::error::Error;
 
 use bevy_app::App;
+use toml_edit::de::ValueDeserializer;
 
 use crate::{CVarFlags, CVarsPlugin, cvar_collection};
 
@@ -41,6 +42,21 @@ pub fn read_write_convar_direct() -> Result<(), Box<dyn Error>> {
 
     assert!(**world.resource::<TestBool>());
 
+    Ok(())
+}
+
+#[test]
+pub fn write_convar_reflect() -> Result<(), Box<dyn Error>> {
+    use std::str::FromStr as _;
+
+    use crate::WorldExtensions;
+
+    let mut app = make_test_app();
+    let world = app.world_mut();
+
+    world.set_cvar_reflect("testrig.test_int", ValueDeserializer::from_str("37")?)?;
+
+    assert_eq!(**world.resource::<TestInteger>(), 37);
     Ok(())
 }
 
