@@ -65,7 +65,7 @@ use builtin::LogCVarChanges;
 use parse::CVarOverride;
 use reflect::CVarMeta;
 use serde::Deserializer;
-use serde::de::IntoDeserializer as _;
+use serde::de::IntoDeserializer as _; 
 
 mod error;
 mod macros;
@@ -300,6 +300,36 @@ impl CVarManagement {
 
         Ok(())
     }
+
+    /// Set a CVar to the given reflected value using reflection, without triggering change detection.
+    /// # Remarks
+    /// Use the WorldExtensions version if you can, it handles the invariants. This is harder to call than it looks due to needing mutable world.
+    pub fn set_cvar_reflect_no_change(
+        &self,
+        world: &mut World,
+        cvar: &str,
+        value: &dyn Reflect,
+    ) -> Result<(), CVarError> {
+        let cid = self.tree.get(cvar).ok_or(CVarError::UnknownCVar)?;
+
+        let ty_reg = self.resources.get(&cid).ok_or(CVarError::MissingCid)?;
+
+        let reflect_cvar = ty_reg.data::<reflect::ReflectCVar>().unwrap();
+
+        let reflect_res = ty_reg.data::<ReflectResource>().unwrap();
+
+        let mut cvar = reflect_res
+            .reflect_mut(world)
+            .ok_or(CVarError::BadCVarType)?;
+
+        reflect_cvar.reflect_apply(
+            cvar.bypass_change_detection().as_partial_reflect_mut(),
+            value.as_partial_reflect(),
+        )?;
+
+        Ok(())
+    }
+
     /// Set a CVar to the given deserializable value using reflection.
     /// # Remarks
     /// Use the WorldExtensions version if you can, it handles the invariants. This is harder to call than it looks due to needing mutable world.
@@ -344,6 +374,51 @@ impl CVarManagement {
 
         Ok(())
     }
+
+    /// Set a CVar to the given deserializable value using reflection, without triggering change detection.
+    /// # Remarks
+    /// Use the WorldExtensions version if you can, it handles the invariants. This is harder to call than it looks due to needing mutable world.
+    pub fn set_cvar_deserialize_no_change<'w, 'a>(
+        &self,
+        world: &mut World,
+        cvar: &str,
+        value: impl Deserializer<'a>,
+    ) -> Result<(), CVarError> {
+        let cid = self.tree.get(cvar).ok_or(CVarError::UnknownCVar)?;
+
+        let ty_reg = self.resources.get(&cid).ok_or(CVarError::MissingCid)?;
+
+        let reflect_cvar = ty_reg.data::<reflect::ReflectCVar>().unwrap();
+
+        let value_patch = {
+            let field_0 = reflect_cvar.inner_type();
+
+            let registry = world.resource::<AppTypeRegistry>().read();
+
+            let deserializer = registry
+                .get(field_0)
+                .ok_or(CVarError::CannotDeserialize)?
+                .data::<ReflectDeserialize>()
+                .ok_or(CVarError::CannotDeserialize)?;
+
+            deserializer
+                .deserialize(value)
+                .map_err(|e| CVarError::FailedDeserialize(format!("{e:?}")))?
+        };
+
+        let reflect_res = ty_reg.data::<ReflectResource>().unwrap();
+
+        let mut cvar = reflect_res
+            .reflect_mut(world)
+            .ok_or(CVarError::BadCVarType)?;
+
+        reflect_cvar.reflect_apply(
+            cvar.bypass_change_detection().as_partial_reflect_mut(),
+            value_patch.as_partial_reflect(),
+        )?;
+
+        Ok(())
+    }
 }
 
 /// Provides extensions to the world for CVars.
@@ -373,13 +448,24 @@ pub trait WorldExtensions {
         })
     }
 
+    /// Set a CVar on the world through reflection, without triggering change detection.
+    fn set_cvar_reflect_no_change(&mut self, cvar: &str, value: &dyn Reflect) -> Result<(), CVarError> {
+        let cell = self.as_world();
+
+        cell.resource_scope::<CVarManagement, _>(|w, management| {
+            management.set_cvar_reflect_no_change(w, cvar, value)
+        })
+    }
+
     /// Set a CVar on the world using the provided override.
+    /// # Remarks
+    /// CVar overrides, by design, bypass change detection to look like the default value of the CVar.
     #[cfg(feature = "parse_cvars")]
     fn set_cvar_with_override(&mut self, r#override: &CVarOverride) -> Result<(), CVarError> {
         let cell = self.as_world();
 
         cell.resource_scope::<CVarManagement, _>(|w, management| {
-            management.set_cvar_deserialize(
+            management.set_cvar_deserialize_no_change(
                 w,
                 &r#override.0,
                 r#override.1.clone().into_deserializer(),
@@ -415,6 +501,7 @@ pub fn cvar_modified_system<T: CVarMeta>(
     log_updates: Res<LogCVarChanges>,
 ) {
     use bevy_ecs::prelude::DetectChanges as _;
+
     if **log_updates && r.is_changed() {
         bevy_log::info!("CVar modified: {} = {:?}", T::CVAR_PATH, **r);
     }

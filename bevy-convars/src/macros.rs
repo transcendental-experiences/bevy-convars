@@ -45,6 +45,9 @@ macro_rules! cvar {
             fn flags() -> CVarFlags {
                 $cvar_flags
             }
+            fn default_inner() -> Self::Inner {
+                $cvar_default
+            }
         }
     };
 }
