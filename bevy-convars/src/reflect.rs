@@ -57,7 +57,7 @@ impl ReflectCVar {
     ) -> Result<(), CVarError> {
         let inner_mut = self.reflect_inner_mut(cvar)?;
 
-        inner_mut.apply(value);
+        inner_mut.try_apply(value)?;
         Ok(())
     }
 }

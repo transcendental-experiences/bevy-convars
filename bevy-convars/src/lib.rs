@@ -66,9 +66,10 @@ use bevy_utils::HashMap;
 use parse::CVarOverride;
 use serde::Deserializer;
 use serde::de::IntoDeserializer as _;
-use thiserror::Error;
 
+mod error;
 mod types;
+pub use error::*;
 pub use types::*;
 pub mod parse;
 pub mod reflect;
@@ -341,29 +342,6 @@ impl CVarManagement {
 
         Ok(())
     }
-}
-
-/// Errors that can occur when manipulating CVars.
-#[derive(Error, Debug)]
-#[non_exhaustive]
-pub enum CVarError {
-    /// Error indicating a CVar was never registered or is invalid.
-    #[error("Unknown CVar.")]
-    UnknownCVar,
-    /// Error indicating the given CVar type is invalid.
-    #[error(
-        "CVar is not internally a Tuple Struct of the expected layout, did you try to register it manually?"
-    )]
-    BadCVarType,
-    /// Error indicating the CVar type is missing a [ComponentId] and is likely not registered correctly.
-    #[error("Missing ComponentID, was the resource registered?")]
-    MissingCid,
-    /// Error indicating the underlying type of the CVar cannot be deserialized, and as such cannot be reflected over.
-    #[error("Underlying CVar type cannot be deserialized.")]
-    CannotDeserialize,
-    /// Error indicating the CVar failed to deserialize.
-    #[error("Failed to deserialize.")]
-    FailedDeserialize(String),
 }
 
 /// Provides extensions to the world for CVars.

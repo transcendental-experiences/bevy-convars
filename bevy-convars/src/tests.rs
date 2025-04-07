@@ -46,7 +46,7 @@ pub fn read_write_convar_direct() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-pub fn write_convar_reflect() -> Result<(), Box<dyn Error>> {
+pub fn write_convar_deserialize() -> Result<(), Box<dyn Error>> {
     use std::str::FromStr as _;
 
     use crate::WorldExtensions;
@@ -61,7 +61,7 @@ pub fn write_convar_reflect() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-pub fn write_convar_reflect_unknown_convar() -> Result<(), Box<dyn Error>> {
+pub fn write_convar_deserialize_unknown_convar() -> Result<(), Box<dyn Error>> {
     use std::str::FromStr as _;
 
     use crate::WorldExtensions;
@@ -81,7 +81,7 @@ pub fn write_convar_reflect_unknown_convar() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-pub fn write_convar_reflect_wrong_type() -> Result<(), Box<dyn Error>> {
+pub fn write_convar_deserialize_wrong_type() -> Result<(), Box<dyn Error>> {
     use std::str::FromStr as _;
 
     use crate::WorldExtensions;
@@ -96,6 +96,24 @@ pub fn write_convar_reflect_wrong_type() -> Result<(), Box<dyn Error>> {
 
     assert!(
         matches!(e, Err(CVarError::FailedDeserialize(_))),
+        "{} failed to match FailedDeserialize.",
+        e.err().unwrap()
+    );
+
+    Ok(())
+}
+
+#[test]
+pub fn write_convar_reflect_wrong_type() -> Result<(), Box<dyn Error>> {
+    use crate::WorldExtensions;
+
+    let mut app = make_test_app();
+    let world = app.world_mut();
+
+    let e = world.set_cvar_reflect(TestInteger::CVAR_PATH, &"awawa".to_owned());
+
+    assert!(
+        matches!(e, Err(CVarError::FailedApply { .. })),
         "{} failed to match FailedDeserialize.",
         e.err().unwrap()
     );
