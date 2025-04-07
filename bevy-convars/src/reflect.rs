@@ -65,7 +65,7 @@ impl ReflectCVar {
 impl<T: CVarMeta> FromType<T> for ReflectCVar {
     fn from_type() -> Self {
         ReflectCVar {
-            inner_type: std::any::TypeId::of::<TypeId>(),
+            inner_type: std::any::TypeId::of::<T::Inner>(),
             reflect_inner: |r| {
                 r.reflect_ref()
                     .as_tuple_struct()
