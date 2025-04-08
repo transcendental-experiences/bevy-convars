@@ -443,6 +443,19 @@ pub trait WorldExtensions {
         })
     }
 
+    /// Set a CVar on the world through reflection by deserializing the provided data into it, without triggering change detection.
+    fn set_cvar_deserialize_no_change<'a>(
+        &mut self,
+        cvar: &str,
+        value: impl serde::Deserializer<'a>,
+    ) -> Result<(), CVarError> {
+        let cell = self.as_world();
+
+        cell.resource_scope::<CVarManagement, _>(|w, management| {
+            management.set_cvar_deserialize_no_change(w, cvar, value)
+        })
+    }
+
     /// Set a CVar on the world through reflection
     fn set_cvar_reflect(&mut self, cvar: &str, value: &dyn Reflect) -> Result<(), CVarError> {
         let cell = self.as_world();

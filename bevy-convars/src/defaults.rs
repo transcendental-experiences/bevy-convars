@@ -24,10 +24,10 @@ pub trait IsDefault: Sealed {
 /// Extension trait to allow flagging a CVar as being its default value, even if modified.
 pub trait IsDefaultMut: IsDefault {
     /// Set the current value to appear as the default one.
-    /// This does not modify the actual default value for the type, only trigger change detection such that the current value is treated as default.
+    /// This does not modify the actual default value for the type, only trigger change detection such that the current value is treated as the default.
     fn set_is_default(&mut self);
 
-    /// Reset the value to its default.
+    /// Reset the value to its default, marking it as being the default again.
     fn reset_to_default(&mut self);
 }
 

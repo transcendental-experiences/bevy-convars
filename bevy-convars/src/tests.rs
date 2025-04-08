@@ -29,7 +29,6 @@ cvar_collection! {
 pub fn make_test_app() -> App {
     let mut app = App::new();
     app.add_plugins((CVarsPlugin, TestCVarsPlugin));
-    app.world_mut().increment_change_tick();
     app
 }
 
@@ -56,17 +55,17 @@ pub fn read_write_default_convar_direct() -> Result<(), Box<dyn Error>> {
 
     assert_eq!(**world.resource::<TestInteger>(), TEST_INTEGER_INIT_VAL);
 
-    assert!(world.resource_mut::<TestInteger>().is_default());
+    assert!(world.resource_ref::<TestInteger>().is_default());
 
     **world.resource_mut::<TestInteger>() = 69;
 
     assert_eq!(**world.resource::<TestInteger>(), 69);
-    assert!(!world.resource_mut::<TestInteger>().is_default());
+    assert!(!world.resource_ref::<TestInteger>().is_default());
 
     world.resource_mut::<TestInteger>().reset_to_default();
 
     assert_eq!(**world.resource::<TestInteger>(), TEST_INTEGER_INIT_VAL);
-    assert!(world.resource_mut::<TestInteger>().is_default());
+    assert!(world.resource_ref::<TestInteger>().is_default());
 
     Ok(())
 }
@@ -160,6 +159,8 @@ pub fn write_convar_override() -> Result<(), Box<dyn Error>> {
     world.set_cvar_with_override(&CVarOverride::from_str("testrig.test_int=37")?)?;
 
     assert_eq!(**world.resource::<TestInteger>(), 37);
+    assert!(world.resource_ref::<TestInteger>().is_default(), "An override should look like the default value for a convar.");
+
     Ok(())
 }
 
