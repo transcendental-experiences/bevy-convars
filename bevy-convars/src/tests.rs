@@ -3,7 +3,10 @@ use std::error::Error;
 use bevy_app::App;
 use toml_edit::de::ValueDeserializer;
 
-use crate::{CVarError, CVarFlags, CVarMeta, CVarsPlugin, cvar_collection};
+use crate::{
+    CVarError, CVarFlags, CVarMeta, CVarsPlugin, cvar_collection,
+    defaults::{IsDefault, IsDefaultMut},
+};
 
 const TEST_INTEGER_INIT_VAL: i32 = -5;
 
@@ -26,6 +29,7 @@ cvar_collection! {
 pub fn make_test_app() -> App {
     let mut app = App::new();
     app.add_plugins((CVarsPlugin, TestCVarsPlugin));
+    app.world_mut().increment_change_tick();
     app
 }
 
@@ -41,6 +45,28 @@ pub fn read_write_convar_direct() -> Result<(), Box<dyn Error>> {
     assert_eq!(**world.resource::<TestInteger>(), 69);
 
     assert!(**world.resource::<TestBool>());
+
+    Ok(())
+}
+
+#[test]
+pub fn read_write_default_convar_direct() -> Result<(), Box<dyn Error>> {
+    let mut app = make_test_app();
+    let world = app.world_mut();
+
+    assert_eq!(**world.resource::<TestInteger>(), TEST_INTEGER_INIT_VAL);
+
+    assert!(world.resource_mut::<TestInteger>().is_default());
+
+    **world.resource_mut::<TestInteger>() = 69;
+
+    assert_eq!(**world.resource::<TestInteger>(), 69);
+    assert!(!world.resource_mut::<TestInteger>().is_default());
+
+    world.resource_mut::<TestInteger>().reset_to_default();
+
+    assert_eq!(**world.resource::<TestInteger>(), TEST_INTEGER_INIT_VAL);
+    assert!(world.resource_mut::<TestInteger>().is_default());
 
     Ok(())
 }

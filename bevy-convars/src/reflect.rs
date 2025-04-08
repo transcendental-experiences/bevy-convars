@@ -21,6 +21,9 @@ pub trait CVarMeta: Resource + std::ops::Deref<Target = Self::Inner> {
     fn flags() -> CVarFlags;
     /// Returns an instance of the CVar's default value.
     fn default_inner() -> Self::Inner;
+    /// Sets the CVar to default directly, without modifying other properties.
+    /// This does not reset the CVar's "is default" state in any way and simply modifies the CVar.
+    fn set_to_default(&mut self);
 }
 
 /// Provides bevy reflection metadata for CVars.

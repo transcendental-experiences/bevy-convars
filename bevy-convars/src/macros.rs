@@ -42,11 +42,17 @@ macro_rules! cvar {
         impl $crate::reflect::CVarMeta for $cvar_ident {
             type Inner = $cvar_ty;
             const CVAR_PATH: &'static str = $cvar_path;
+
             fn flags() -> CVarFlags {
                 $cvar_flags
             }
+
             fn default_inner() -> Self::Inner {
                 $cvar_default
+            }
+
+            fn set_to_default(&mut self) {
+                self.0 = Self::default_inner();
             }
         }
     };

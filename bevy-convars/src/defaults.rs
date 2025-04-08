@@ -26,6 +26,9 @@ pub trait IsDefaultMut: IsDefault {
     /// Set the current value to appear as the default one.
     /// This does not modify the actual default value for the type, only trigger change detection such that the current value is treated as default.
     fn set_is_default(&mut self);
+
+    /// Reset the value to its default.
+    fn reset_to_default(&mut self);
 }
 
 // Deliberately conservative implementations.
@@ -57,10 +60,20 @@ impl<T: CVarMeta> IsDefaultMut for Mut<'_, T> {
     fn set_is_default(&mut self) {
         self.set_added();
     }
+
+    fn reset_to_default(&mut self) {
+        T::set_to_default(self.as_mut());
+        self.set_added();
+    }
 }
 
 impl<T: CVarMeta> IsDefaultMut for ResMut<'_, T> {
     fn set_is_default(&mut self) {
+        self.set_added();
+    }
+
+    fn reset_to_default(&mut self) {
+        T::set_to_default(self.as_mut());
         self.set_added();
     }
 }
