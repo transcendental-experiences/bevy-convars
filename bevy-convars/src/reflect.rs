@@ -5,7 +5,7 @@ use std::any::TypeId;
 use bevy_ecs::{
     change_detection::DetectChanges,
     prelude::Resource,
-    world::{Mut, Ref},
+    world::Ref,
 };
 use bevy_reflect::{FromType, PartialReflect, Reflectable};
 
@@ -91,11 +91,6 @@ impl ReflectCVar {
     /// Returns whether or not the instance is of the default value.
     pub fn is_default_value<T: Reflectable>(&self, r: Ref<T>) -> bool {
         (self.is_default_value)(r.map(|x| x.as_partial_reflect()))
-    }
-
-    /// Returns whether or not the instance is of the default value.
-    pub fn is_default_value_mut<T: Reflectable>(&self, r: Mut<T>) -> bool {
-        (self.is_default_value)(r.map_unchanged(|x| x.as_partial_reflect_mut()).into())
     }
 }
 
