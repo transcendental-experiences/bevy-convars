@@ -14,17 +14,24 @@ pub struct ConfigLoaderPlugin {
 /// Methods for creating a config loader.
 impl ConfigLoaderPlugin {
     /// Create a config loader from an ordered list of TOML-containing strings.
-    pub fn from_strs(sources: impl IntoIterator<Item = impl AsRef<str>>) -> Result<Self, ConfigLoaderError> {
-        let documents: Result<Vec<_>, _> = sources.into_iter().map(|s| DocumentMut::from_str(s.as_ref())).collect();
+    pub fn from_strs(
+        sources: impl IntoIterator<Item = impl AsRef<str>>,
+    ) -> Result<Self, ConfigLoaderError> {
+        let documents: Result<Vec<_>, _> = sources
+            .into_iter()
+            .map(|s| DocumentMut::from_str(s.as_ref()))
+            .collect();
 
         Ok(Self {
-            sources: documents?
+            sources: documents?,
         })
     }
 
     /// Create a config loader from an ordered list of toml files to load.
     #[cfg(feature = "config_loader_fs")]
-    pub fn from_files(sources: impl IntoIterator<Item = impl AsRef<Path>>) -> Result<Self, ConfigLoaderError> {
+    pub fn from_files(
+        sources: impl IntoIterator<Item = impl AsRef<Path>>,
+    ) -> Result<Self, ConfigLoaderError> {
         let mut source_contents = Vec::new();
 
         for path in sources.into_iter() {
@@ -32,13 +39,14 @@ impl ConfigLoaderPlugin {
             source_contents.push(data);
         }
 
-        let documents: Result<Vec<_>, _> = source_contents.into_iter().map(|s| DocumentMut::from_str(&s)).collect();
+        let documents: Result<Vec<_>, _> = source_contents
+            .into_iter()
+            .map(|s| DocumentMut::from_str(&s))
+            .collect();
 
-        Ok(
-            Self {
-                sources: documents?,
-            }
-        )
+        Ok(Self {
+            sources: documents?,
+        })
     }
 }
 
@@ -50,7 +58,7 @@ pub enum ConfigLoaderError {
     ParseError(TomlError),
     /// Wrapper over an inner IO error.
     #[error(transparent)]
-    IoError(std::io::Error)
+    IoError(std::io::Error),
 }
 
 impl From<TomlError> for ConfigLoaderError {

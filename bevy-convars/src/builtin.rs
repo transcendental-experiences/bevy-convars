@@ -1,6 +1,6 @@
 //! Builtin CVars that are automatically registered in any application.
 
-use std::{ops::Deref, path::PathBuf};
+use std::ops::Deref;
 
 use bevy_app::Plugin;
 use bevy_ecs::prelude::Resource;
@@ -22,6 +22,9 @@ cvar_collection! {
 static_assertions::assert_impl_all!(CoreCVars: SystemParam);
 static_assertions::assert_impl_all!(CoreCVarsPlugin: Plugin);
 static_assertions::assert_impl_all!(LogCVarChanges: Resource, Deref<Target = bool>);
+
+#[cfg(feature = "config_loader")]
+use std::path::PathBuf;
 
 #[cfg(feature = "config_loader")]
 cvar_collection! {

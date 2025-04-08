@@ -1,7 +1,6 @@
 use std::error::Error;
 
 use bevy_app::App;
-use toml_edit::de::ValueDeserializer;
 
 use crate::{
     CVarError, CVarFlags, CVarMeta, CVarsPlugin, cvar_collection,
@@ -71,8 +70,10 @@ pub fn read_write_default_convar_direct() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
+#[cfg(feature = "parse_cvars")]
 pub fn write_convar_deserialize() -> Result<(), Box<dyn Error>> {
     use std::str::FromStr as _;
+    use toml_edit::de::ValueDeserializer;
 
     use crate::WorldExtensions;
 
@@ -86,8 +87,10 @@ pub fn write_convar_deserialize() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
+#[cfg(feature = "parse_cvars")]
 pub fn write_convar_deserialize_unknown_convar() -> Result<(), Box<dyn Error>> {
     use std::str::FromStr as _;
+    use toml_edit::de::ValueDeserializer;
 
     use crate::WorldExtensions;
 
@@ -106,8 +109,10 @@ pub fn write_convar_deserialize_unknown_convar() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
+#[cfg(feature = "parse_cvars")]
 pub fn write_convar_deserialize_wrong_type() -> Result<(), Box<dyn Error>> {
     use std::str::FromStr as _;
+    use toml_edit::de::ValueDeserializer;
 
     use crate::WorldExtensions;
 
@@ -159,7 +164,10 @@ pub fn write_convar_override() -> Result<(), Box<dyn Error>> {
     world.set_cvar_with_override(&CVarOverride::from_str("testrig.test_int=37")?)?;
 
     assert_eq!(**world.resource::<TestInteger>(), 37);
-    assert!(world.resource_ref::<TestInteger>().is_default(), "An override should look like the default value for a convar.");
+    assert!(
+        world.resource_ref::<TestInteger>().is_default(),
+        "An override should look like the default value for a convar."
+    );
 
     Ok(())
 }

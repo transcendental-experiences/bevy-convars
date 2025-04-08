@@ -148,7 +148,7 @@ macro_rules! cvar_collection {
 
                 // Ensure our default values stay marked as default by incrementing the change tick.
                 // Due to how change ticks work there's zero consequences.
-                app.world_mut().increment_change_tick(); 
+                app.world_mut().increment_change_tick();
             }
         }
     };

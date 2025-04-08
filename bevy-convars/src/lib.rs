@@ -58,6 +58,7 @@ use bevy_ecs::component::ComponentId;
 use bevy_ecs::prelude::*;
 use bevy_platform_support::collections::HashMap;
 use bevy_reflect::{TypeRegistration, prelude::*};
+#[cfg(feature = "config_loader")]
 use builtin::ConfigLoaderCVarsPlugin;
 use builtin::CoreCVarsPlugin;
 use builtin::LogCVarChanges;
@@ -65,6 +66,7 @@ use builtin::LogCVarChanges;
 use parse::CVarOverride;
 use reflect::CVarMeta;
 use serde::Deserializer;
+#[cfg(feature = "parse_cvars")]
 use serde::de::IntoDeserializer as _;
 
 pub mod defaults;
@@ -74,10 +76,11 @@ mod types;
 pub use error::*;
 pub use types::*;
 pub mod builtin;
-pub mod parse;
-pub mod reflect;
 #[cfg(all(feature = "config_loader", feature = "incomplete"))]
 pub mod loader;
+#[cfg(feature = "parse_cvars")]
+pub mod parse;
+pub mod reflect;
 
 #[cfg(test)]
 mod tests;

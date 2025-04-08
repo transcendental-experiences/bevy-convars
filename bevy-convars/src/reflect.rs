@@ -2,11 +2,7 @@
 
 use std::any::TypeId;
 
-use bevy_ecs::{
-    change_detection::DetectChanges,
-    prelude::Resource,
-    world::Ref,
-};
+use bevy_ecs::{change_detection::DetectChanges, prelude::Resource, world::Ref};
 use bevy_reflect::{FromType, PartialReflect, Reflectable};
 
 use crate::{CVarError, CVarFlags};
