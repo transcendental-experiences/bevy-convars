@@ -33,3 +33,6 @@ config_loader = ["parse_cvars"]
 
 # Allow creating the config loader plugin from a list of files on disk.
 config_loader_fs = ["config_loader"]
+
+# Gates incomplete features. No SemVer guarantees are provided for features within this set.
+incomplete = []

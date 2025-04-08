@@ -76,7 +76,7 @@ pub use types::*;
 pub mod builtin;
 pub mod parse;
 pub mod reflect;
-#[cfg(feature = "config_loader")]
+#[cfg(all(feature = "config_loader", feature = "incomplete"))]
 pub mod loader;
 
 #[cfg(test)]
