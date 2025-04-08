@@ -17,7 +17,7 @@ macro_rules! cvar {
         )*
         pub struct $cvar_ident($cvar_ty);
 
-        impl  $crate::reexports::bevy_ecs::system::Resource for $cvar_ident { }
+        impl  $crate::reexports::bevy_ecs::prelude::Resource for $cvar_ident { }
 
         impl ::std::ops::Deref for $cvar_ident {
             type Target = $cvar_ty;

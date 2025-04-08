@@ -11,11 +11,11 @@ repository = "https://github.com/moonheart08/bevy-convars/"
 rust-version = "1.85.0"
 
 [dependencies]
-bevy_ecs = "0.15.3"
-bevy_app = "0.15.3"
-bevy_reflect = "0.15.3"
-bevy_log = "0.15.3"
-bevy_utils = "0.15.3"
+bevy_ecs = { git = "https://github.com/moonheart08/bevy.git", branch = "2025-07-04-change-detection-added-helpers"}
+bevy_app = { git = "https://github.com/moonheart08/bevy.git", branch = "2025-07-04-change-detection-added-helpers"}
+bevy_reflect = { git = "https://github.com/moonheart08/bevy.git", branch = "2025-07-04-change-detection-added-helpers"}
+bevy_log = { git = "https://github.com/moonheart08/bevy.git", branch = "2025-07-04-change-detection-added-helpers"}
+bevy_platform_support = { git = "https://github.com/moonheart08/bevy.git", branch = "2025-07-04-change-detection-added-helpers"}
 thiserror = "2.0"
 serde = "1"
 static_assertions = "1.1.0"

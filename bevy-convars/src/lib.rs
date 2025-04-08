@@ -57,7 +57,7 @@ use bevy_app::prelude::*;
 use bevy_ecs::component::ComponentId;
 use bevy_ecs::prelude::*;
 use bevy_reflect::{TypeRegistration, prelude::*};
-use bevy_utils::HashMap;
+use bevy_platform_support::collections::HashMap;
 use builtin::ConfigLoaderCVarsPlugin;
 use builtin::CoreCVarsPlugin;
 use builtin::LogCVarChanges;
@@ -229,41 +229,39 @@ impl CVarManagement {
     /// Gets a CVar's value through reflection.
     /// # Remarks
     /// This returns the inner value, not the cvar resource itself.
-    #[must_use]
-    pub fn get_cvar_reflect<'a>(&self, world: &'a World, cvar: &str) -> Option<&'a dyn Reflect> {
-        let cid = self.tree.get(cvar)?;
+    pub fn get_cvar_reflect<'a>(&self, world: &'a World, cvar: &str) -> Result<&'a dyn Reflect, CVarError> {
+        let cid = self.tree.get(cvar).ok_or(CVarError::UnknownCVar)?;
 
-        let ty_info = self.resources.get(&cid)?;
+        let ty_info = self.resources.get(&cid).ok_or(CVarError::UnknownCVar)?;
 
-        let reflect_res = ty_info.data::<ReflectResource>()?;
-        let reflect_cvar = ty_info.data::<reflect::ReflectCVar>()?;
+        let reflect_res = ty_info.data::<ReflectResource>().ok_or(CVarError::BadCVarType)?;
+        let reflect_cvar = ty_info.data::<reflect::ReflectCVar>().ok_or(CVarError::BadCVarType)?;
 
         let res = reflect_res.reflect(world)?;
 
         reflect_cvar
             .reflect_inner(res.as_partial_reflect())
             .unwrap()
-            .try_as_reflect()
+            .try_as_reflect().ok_or(CVarError::BadCVarType)
     }
 
     /// Gets a CVar's value mutably through reflection.
     /// # Remarks
     /// This returns the inner value, not the cvar resource itself.
     /// A change-detection aware handle is returned.
-    #[must_use]
     pub fn get_cvar_reflect_mut<'a>(
         &self,
         world: &'a mut World,
         cvar: &str,
-    ) -> Option<Mut<'a, dyn Reflect>> {
-        let cid = self.tree.get(cvar)?;
+    ) -> Result<Mut<'a, dyn Reflect>, CVarError> {
+        let cid = self.tree.get(cvar).ok_or(CVarError::UnknownCVar)?;
 
-        let ty_info = self.resources.get(&cid)?;
+        let ty_info = self.resources.get(&cid).ok_or(CVarError::UnknownCVar)?;
 
-        let reflect_res = ty_info.data::<ReflectResource>()?;
-        let reflect_cvar = ty_info.data::<reflect::ReflectCVar>()?;
+        let reflect_res = ty_info.data::<ReflectResource>().ok_or(CVarError::BadCVarType)?;
+        let reflect_cvar = ty_info.data::<reflect::ReflectCVar>().ok_or(CVarError::BadCVarType)?;
 
-        Some(reflect_res.reflect_mut(world)?.map_unchanged(|x| {
+        Ok(reflect_res.reflect_mut(world)?.map_unchanged(|x| {
             reflect_cvar
                 .reflect_inner_mut(x.as_partial_reflect_mut())
                 .unwrap()
@@ -290,8 +288,7 @@ impl CVarManagement {
         let reflect_res = ty_reg.data::<ReflectResource>().unwrap();
 
         let cvar = reflect_res
-            .reflect_mut(world)
-            .ok_or(CVarError::BadCVarType)?;
+            .reflect_mut(world)?;
 
         reflect_cvar.reflect_apply(
             cvar.into_inner().as_partial_reflect_mut(),
@@ -319,8 +316,7 @@ impl CVarManagement {
         let reflect_res = ty_reg.data::<ReflectResource>().unwrap();
 
         let mut cvar = reflect_res
-            .reflect_mut(world)
-            .ok_or(CVarError::BadCVarType)?;
+            .reflect_mut(world)?;
 
         reflect_cvar.reflect_apply(
             cvar.bypass_change_detection().as_partial_reflect_mut(),
@@ -364,8 +360,7 @@ impl CVarManagement {
         let reflect_res = ty_reg.data::<ReflectResource>().unwrap();
 
         let cvar = reflect_res
-            .reflect_mut(world)
-            .ok_or(CVarError::BadCVarType)?;
+            .reflect_mut(world)?;
 
         reflect_cvar.reflect_apply(
             cvar.into_inner().as_partial_reflect_mut(),
@@ -409,8 +404,7 @@ impl CVarManagement {
         let reflect_res = ty_reg.data::<ReflectResource>().unwrap();
 
         let mut cvar = reflect_res
-            .reflect_mut(world)
-            .ok_or(CVarError::BadCVarType)?;
+            .reflect_mut(world)?;
 
         reflect_cvar.reflect_apply(
             cvar.bypass_change_detection().as_partial_reflect_mut(),

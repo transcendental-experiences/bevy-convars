@@ -1,3 +1,4 @@
+use bevy_ecs::world::error::ResourceFetchError;
 use bevy_reflect::ApplyError;
 
 /// Errors that can occur when manipulating CVars.
@@ -27,10 +28,23 @@ pub enum CVarError {
         /// The inner error.
         inner: ApplyError,
     },
+    /// Error indicating that the world could not fulfill the requested operation due to an access conflict with an ongoing operation.
+    #[error("The requested operation conflicts with another ongoing operation on the world and cannot be performed.")]
+    AccessConflict,
 }
 
 impl From<ApplyError> for CVarError {
     fn from(value: ApplyError) -> Self {
         Self::FailedApply { inner: value }
+    }
+}
+
+impl From<ResourceFetchError> for CVarError {
+    fn from(value: ResourceFetchError) -> Self {
+        match value {
+            ResourceFetchError::NotRegistered => CVarError::UnknownCVar,
+            ResourceFetchError::DoesNotExist(_) => CVarError::UnknownCVar,
+            ResourceFetchError::NoResourceAccess(_) => CVarError::AccessConflict,
+        }
     }
 }

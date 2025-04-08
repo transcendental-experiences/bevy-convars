@@ -2,7 +2,7 @@
 
 use std::any::TypeId;
 
-use bevy_ecs::system::Resource;
+use bevy_ecs::prelude::Resource;
 use bevy_reflect::{FromType, PartialReflect};
 
 use crate::{CVarError, CVarFlags};

@@ -3,7 +3,8 @@
 use std::{ops::Deref, path::PathBuf};
 
 use bevy_app::Plugin;
-use bevy_ecs::system::{Resource, SystemParam};
+use bevy_ecs::system::SystemParam;
+use bevy_ecs::prelude::Resource;
 
 use crate::{CVarFlags, cvar_collection};
 cvar_collection! {
