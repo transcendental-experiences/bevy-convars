@@ -11,7 +11,7 @@ cvar_collection! {
     /// Collection of core CVars you can use as a system argument.
     pub struct CoreCVars & CoreCVarsMut {
         /// Enables logging ALL cvar modifications. This will log the change as info.
-        log_cvar_changes = cvar LogCVarChanges("core.log_cvar_changes", CVarFlags::LOCAL | CVarFlags::RUNTIME): bool = false,
+        log_cvar_changes = cvar LogCVarChanges("core.log_cvar_changes", CVarFlags::RUNTIME): bool = false,
     }
 
     /// Plugin that handles registering all the core CVars.

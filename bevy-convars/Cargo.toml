@@ -22,7 +22,7 @@ static_assertions = "1.1.0"
 toml_edit = { version = "0.22", features = ["serde"], optional = true }
 
 [features]
-default = ["parse_cvars", "config_loader"]
+default = ["parse_cvars", "config_loader", "config_loader_fs"]
 
 # Allows parsing convars and convar overrides from TOML.
 # Does not enable or disable serde, serde is always present pending a refactor.
@@ -30,3 +30,6 @@ parse_cvars = ["dep:toml_edit"]
 
 # Allows bevy-convars to provide CVar loading for you.
 config_loader = ["parse_cvars"]
+
+# Allow creating the config loader plugin from a list of files on disk.
+config_loader_fs = ["config_loader"]

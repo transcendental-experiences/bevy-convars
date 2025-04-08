@@ -76,6 +76,8 @@ pub use types::*;
 pub mod builtin;
 pub mod parse;
 pub mod reflect;
+#[cfg(feature = "config_loader")]
+pub mod loader;
 
 #[cfg(test)]
 mod tests;
@@ -99,7 +101,7 @@ pub mod reexports {
 pub struct CVarsPlugin;
 
 #[derive(Debug)]
-enum CVarTreeNode {
+pub(crate) enum CVarTreeNode {
     Leaf {
         name: &'static str,
         reg: ComponentId,
@@ -207,9 +209,9 @@ impl CVarTreeNode {
 #[derive(Default, Resource)]
 pub struct CVarManagement {
     /// An index of all cvar resources and their type registrations.
-    resources: HashMap<ComponentId, TypeRegistration>,
+    pub(crate) resources: HashMap<ComponentId, TypeRegistration>,
     /// An index of all CVars and their types.
-    tree: CVarTreeNode,
+    pub(crate) tree: CVarTreeNode,
 }
 
 impl CVarManagement {
