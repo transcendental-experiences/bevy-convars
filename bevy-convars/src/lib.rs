@@ -56,8 +56,8 @@ use bevy_app::App;
 use bevy_app::prelude::*;
 use bevy_ecs::component::ComponentId;
 use bevy_ecs::prelude::*;
-use bevy_reflect::{TypeRegistration, prelude::*};
 use bevy_platform_support::collections::HashMap;
+use bevy_reflect::{TypeRegistration, prelude::*};
 use builtin::ConfigLoaderCVarsPlugin;
 use builtin::CoreCVarsPlugin;
 use builtin::LogCVarChanges;
@@ -65,8 +65,9 @@ use builtin::LogCVarChanges;
 use parse::CVarOverride;
 use reflect::CVarMeta;
 use serde::Deserializer;
-use serde::de::IntoDeserializer as _; 
+use serde::de::IntoDeserializer as _;
 
+pub mod defaults;
 mod error;
 mod macros;
 mod types;
@@ -229,20 +230,29 @@ impl CVarManagement {
     /// Gets a CVar's value through reflection.
     /// # Remarks
     /// This returns the inner value, not the cvar resource itself.
-    pub fn get_cvar_reflect<'a>(&self, world: &'a World, cvar: &str) -> Result<&'a dyn Reflect, CVarError> {
+    pub fn get_cvar_reflect<'a>(
+        &self,
+        world: &'a World,
+        cvar: &str,
+    ) -> Result<&'a dyn Reflect, CVarError> {
         let cid = self.tree.get(cvar).ok_or(CVarError::UnknownCVar)?;
 
         let ty_info = self.resources.get(&cid).ok_or(CVarError::UnknownCVar)?;
 
-        let reflect_res = ty_info.data::<ReflectResource>().ok_or(CVarError::BadCVarType)?;
-        let reflect_cvar = ty_info.data::<reflect::ReflectCVar>().ok_or(CVarError::BadCVarType)?;
+        let reflect_res = ty_info
+            .data::<ReflectResource>()
+            .ok_or(CVarError::BadCVarType)?;
+        let reflect_cvar = ty_info
+            .data::<reflect::ReflectCVar>()
+            .ok_or(CVarError::BadCVarType)?;
 
         let res = reflect_res.reflect(world)?;
 
         reflect_cvar
             .reflect_inner(res.as_partial_reflect())
             .unwrap()
-            .try_as_reflect().ok_or(CVarError::BadCVarType)
+            .try_as_reflect()
+            .ok_or(CVarError::BadCVarType)
     }
 
     /// Gets a CVar's value mutably through reflection.
@@ -258,8 +268,12 @@ impl CVarManagement {
 
         let ty_info = self.resources.get(&cid).ok_or(CVarError::UnknownCVar)?;
 
-        let reflect_res = ty_info.data::<ReflectResource>().ok_or(CVarError::BadCVarType)?;
-        let reflect_cvar = ty_info.data::<reflect::ReflectCVar>().ok_or(CVarError::BadCVarType)?;
+        let reflect_res = ty_info
+            .data::<ReflectResource>()
+            .ok_or(CVarError::BadCVarType)?;
+        let reflect_cvar = ty_info
+            .data::<reflect::ReflectCVar>()
+            .ok_or(CVarError::BadCVarType)?;
 
         Ok(reflect_res.reflect_mut(world)?.map_unchanged(|x| {
             reflect_cvar
@@ -287,8 +301,7 @@ impl CVarManagement {
 
         let reflect_res = ty_reg.data::<ReflectResource>().unwrap();
 
-        let cvar = reflect_res
-            .reflect_mut(world)?;
+        let cvar = reflect_res.reflect_mut(world)?;
 
         reflect_cvar.reflect_apply(
             cvar.into_inner().as_partial_reflect_mut(),
@@ -315,8 +328,7 @@ impl CVarManagement {
 
         let reflect_res = ty_reg.data::<ReflectResource>().unwrap();
 
-        let mut cvar = reflect_res
-            .reflect_mut(world)?;
+        let mut cvar = reflect_res.reflect_mut(world)?;
 
         reflect_cvar.reflect_apply(
             cvar.bypass_change_detection().as_partial_reflect_mut(),
@@ -359,8 +371,7 @@ impl CVarManagement {
 
         let reflect_res = ty_reg.data::<ReflectResource>().unwrap();
 
-        let cvar = reflect_res
-            .reflect_mut(world)?;
+        let cvar = reflect_res.reflect_mut(world)?;
 
         reflect_cvar.reflect_apply(
             cvar.into_inner().as_partial_reflect_mut(),
@@ -403,8 +414,7 @@ impl CVarManagement {
 
         let reflect_res = ty_reg.data::<ReflectResource>().unwrap();
 
-        let mut cvar = reflect_res
-            .reflect_mut(world)?;
+        let mut cvar = reflect_res.reflect_mut(world)?;
 
         reflect_cvar.reflect_apply(
             cvar.bypass_change_detection().as_partial_reflect_mut(),
@@ -443,7 +453,11 @@ pub trait WorldExtensions {
     }
 
     /// Set a CVar on the world through reflection, without triggering change detection.
-    fn set_cvar_reflect_no_change(&mut self, cvar: &str, value: &dyn Reflect) -> Result<(), CVarError> {
+    fn set_cvar_reflect_no_change(
+        &mut self,
+        cvar: &str,
+        value: &dyn Reflect,
+    ) -> Result<(), CVarError> {
         let cell = self.as_world();
 
         cell.resource_scope::<CVarManagement, _>(|w, management| {

@@ -2,8 +2,12 @@
 
 use std::any::TypeId;
 
-use bevy_ecs::prelude::Resource;
-use bevy_reflect::{FromType, PartialReflect};
+use bevy_ecs::{
+    change_detection::DetectChanges,
+    prelude::Resource,
+    world::{Mut, Ref},
+};
+use bevy_reflect::{FromType, PartialReflect, Reflectable};
 
 use crate::{CVarError, CVarFlags};
 
@@ -26,6 +30,7 @@ pub struct ReflectCVar {
     reflect_inner_mut:
         for<'a> fn(&'a mut dyn PartialReflect) -> Result<&'a mut dyn PartialReflect, CVarError>,
     default_inner: fn() -> Box<dyn PartialReflect>,
+    is_default_value: fn(Ref<dyn PartialReflect>) -> bool,
     inner_type: TypeId,
     path: &'static str,
     flags: CVarFlags,
@@ -79,6 +84,16 @@ impl ReflectCVar {
     pub fn default_inner(&self) -> Box<dyn PartialReflect> {
         (self.default_inner)()
     }
+
+    /// Returns whether or not the instance is of the default value.
+    pub fn is_default_value<T: Reflectable>(&self, r: Ref<T>) -> bool {
+        (self.is_default_value)(r.map(|x| x.as_partial_reflect()))
+    }
+
+    /// Returns whether or not the instance is of the default value.
+    pub fn is_default_value_mut<T: Reflectable>(&self, r: Mut<T>) -> bool {
+        (self.is_default_value)(r.map_unchanged(|x| x.as_partial_reflect_mut()).into())
+    }
 }
 
 impl<T: CVarMeta> FromType<T> for ReflectCVar {
@@ -102,6 +117,7 @@ impl<T: CVarMeta> FromType<T> for ReflectCVar {
                     .ok_or(CVarError::BadCVarType)
             },
             default_inner: || Box::new(T::default_inner()),
+            is_default_value: |r| r.added() == r.last_changed(),
             path: T::CVAR_PATH,
             flags: T::flags(),
         }

@@ -29,7 +29,9 @@ pub enum CVarError {
         inner: ApplyError,
     },
     /// Error indicating that the world could not fulfill the requested operation due to an access conflict with an ongoing operation.
-    #[error("The requested operation conflicts with another ongoing operation on the world and cannot be performed.")]
+    #[error(
+        "The requested operation conflicts with another ongoing operation on the world and cannot be performed."
+    )]
     AccessConflict,
 }
 
