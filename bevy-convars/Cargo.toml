@@ -11,11 +11,11 @@ repository = "https://github.com/moonheart08/bevy-convars/"
 rust-version = "1.85.0"
 
 [dependencies]
-bevy_ecs = { git = "https://github.com/moonheart08/bevy.git", branch = "2025-07-04-change-detection-added-helpers"}
-bevy_app = { git = "https://github.com/moonheart08/bevy.git", branch = "2025-07-04-change-detection-added-helpers"}
-bevy_reflect = { git = "https://github.com/moonheart08/bevy.git", branch = "2025-07-04-change-detection-added-helpers"}
-bevy_log = { git = "https://github.com/moonheart08/bevy.git", branch = "2025-07-04-change-detection-added-helpers"}
-bevy_platform_support = { git = "https://github.com/moonheart08/bevy.git", branch = "2025-07-04-change-detection-added-helpers"}
+bevy_ecs = { git = "https://github.com/moonheart08/bevy.git", branch = "2025-07-04-change-detection-added-helpers" }
+bevy_app = { git = "https://github.com/moonheart08/bevy.git", branch = "2025-07-04-change-detection-added-helpers" }
+bevy_reflect = { git = "https://github.com/moonheart08/bevy.git", branch = "2025-07-04-change-detection-added-helpers" }
+bevy_log = { git = "https://github.com/moonheart08/bevy.git", branch = "2025-07-04-change-detection-added-helpers" }
+bevy_platform_support = { git = "https://github.com/moonheart08/bevy.git", branch = "2025-07-04-change-detection-added-helpers" }
 thiserror = "2.0"
 serde = "1"
 static_assertions = "1.1.0"
@@ -36,3 +36,6 @@ config_loader_fs = ["config_loader"]
 
 # Gates incomplete features. No SemVer guarantees are provided for features within this set.
 incomplete = []
+
+# Vendor support feature. You shouldn't use this, as it implies a build setup you don't have.
+cascade-support = []
