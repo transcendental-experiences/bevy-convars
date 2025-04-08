@@ -90,8 +90,8 @@ pub mod reexports {
     pub use bevy_reflect;
     pub mod jank {
         pub use crate::reflect::ReflectCVar as ReflectCVar__MACRO_JANK;
-        pub use bevy_ecs::reflect::ReflectResource as ReflectResource__CALL_CVARDECLIMPORTS;
-        pub use bevy_reflect::prelude::ReflectDefault as ReflectDefault__CALL_CVARDECLIMPORTS;
+        pub use bevy_ecs::reflect::ReflectResource as ReflectResource__MACRO_JANK;
+        pub use bevy_reflect::prelude::ReflectDefault as ReflectDefault__MACRO_JANK;
     }
 }
 

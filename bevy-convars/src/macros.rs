@@ -11,7 +11,7 @@ macro_rules! cvar {
         #[derive(
             $crate::reexports::bevy_reflect::Reflect,
         )]
-        #[reflect(Default__CALL_CVARDECLIMPORTS, Resource__CALL_CVARDECLIMPORTS, CVar__MACRO_JANK)]
+        #[reflect(Default__MACRO_JANK, Resource__MACRO_JANK, CVar__MACRO_JANK)]
         $(
             #[$cvar_doc]
         )*
@@ -145,7 +145,7 @@ macro_rules! cvar_collection {
                 )*
 
                 app.world_mut().insert_resource(management);
-                
+
                 // Ensure our default values stay marked as default by incrementing the change tick.
                 // Due to how change ticks work there's zero consequences.
                 app.world_mut().increment_change_tick(); 
