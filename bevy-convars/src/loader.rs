@@ -4,6 +4,8 @@ use std::{path::Path, str::FromStr};
 
 use toml_edit::{DocumentMut, TomlError};
 
+mod cvar_doc;
+
 /// The layered config loader plugin.
 /// # Remarks
 /// This should be added AFTER all CVar plugins have been registered.

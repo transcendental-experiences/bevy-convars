@@ -1,5 +1,5 @@
 # PREPUBLISH!
-This ain't ready quite yet, but it will be soon! Need to migrate/rewrite/cleanup more bits of code from the monorepo and finish some unfinished functionality. Bevy is currently **vendored** for this package due to needing an unmerged PR to function. Hoping to be able to publish this in time for 0.16.
+This ain't ready quite yet, but it will be soon! Need to migrate/rewrite/cleanup more bits of code from the monorepo and finish some unfinished functionality. Bevy is currently pinned to a git commit until 0.16 or a new rc releases.
 
 # Bevy Convars
 This is a crate that provides an implementation of Convars (console variables or config variables depending on who you ask), provided as bevy resources, with support for serialization, change detection, and the works.
