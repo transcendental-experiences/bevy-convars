@@ -25,7 +25,7 @@ pub use assets::*;
 
 pub use cvar_doc::*;
 
-use crate::{CVarError, CVarManagement, WorldExtensions};
+use crate::{builtin::ConfigLayers, CVarError, CVarManagement, WorldExtensions};
 
 /// A config loader, which injests [DocumentContext]s and applies them to the world.
 #[derive(Default)]
@@ -254,10 +254,13 @@ impl Plugin for CVarLoaderPlugin {
             }
         }
 
+        // Load the layers we were told to via cvar first.
+        let extra_asset_layers = (**app.world().resource::<ConfigLayers>()).clone();
+
         #[cfg(feature = "config_loader_asset")]
         {
             let server = app.world().resource::<AssetServer>().clone();
-            for layer in self.asset_layers.iter() {
+            for layer in extra_asset_layers.iter().chain(self.asset_layers.iter()) {
                 let root = self.layers_root.as_ref().unwrap().clone();
 
                 let path = root
