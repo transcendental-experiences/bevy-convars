@@ -1,0 +1,4 @@
+[testrig]
+test_bool = false
+test_int = 4
+test_array = [1, 2, -3]

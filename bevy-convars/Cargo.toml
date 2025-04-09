@@ -2,12 +2,12 @@
 name = "bevy-convars"
 version = "0.1.0-prepublish"
 edition = "2024"
-categories = ["configuration", "bevy"]
+categories = ["config", "game-development"]
 keywords = ["config", "configuration", "cvars", "convars", "bevy"]
 license = "MIT OR Apache-2.0"
 
 description = "An implementation of convars (config or console variables) for configuring your Bevy application."
-repository = "https://github.com/moonheart08/bevy-convars/"
+repository = "https://github.com/transcendental-experiences/bevy-convars"
 rust-version = "1.85.0"
 
 [dependencies]

@@ -13,10 +13,13 @@ cvar_collection! {
     /// Collection of test CVars you can use as a system argument.
     pub struct TestCVars & TestCVarsMut {
         /// Test boolean flag.
-        test_bool = cvar TestBool("testrig.test_bool", CVarFlags::RUNTIME): bool = true,
+        test_bool = cvar TestBool("testrig.test_bool", CVarFlags::RUNTIME | CVarFlags::SAVED): bool = true,
 
         /// Test numeric flag
-        test_integer = cvar TestInteger("testrig.test_int", CVarFlags::RUNTIME): i32 = TEST_INTEGER_INIT_VAL,
+        test_integer = cvar TestInteger("testrig.test_int", CVarFlags::RUNTIME | CVarFlags::SAVED): i32 = TEST_INTEGER_INIT_VAL,
+
+        /// Test array cvar
+        test_array = cvar TestArray("testrig.test_array", CVarFlags::RUNTIME | CVarFlags::SAVED): Vec<i32> = vec![],
     }
 
     /// Plugin that handles registering all the core CVars.
@@ -194,7 +197,7 @@ pub fn duplicate_cvar_registration() {
 
 #[test]
 #[should_panic(
-    expected = "Tried to insert leaf test_int into a terminating node. Is there a duplicate or overlap? CVar in question is testrig.test_int.shadowed"
+    expected = "Tried to insert leaf testrig.test_int into a terminating node. Is there a duplicate or overlap? CVar in question is testrig.test_int.shadowed"
 )]
 pub fn mixed_branch_and_leaf_cvar_registration() {
     cvar_collection! {

@@ -121,26 +121,38 @@ macro_rules! cvar_collection {
                 let mut management = app.world_mut().remove_resource::<$crate::CVarManagement>().unwrap();
                 $(
                     app.register_type::<$cvar_ident>();
+                    app.register_type::<$cvar_ty>();
+
+
                     app.insert_resource::<$cvar_ident>($cvar_ident::default());
                     management.register_cvar::<$cvar_ident>(app);
                     // Yes, these always run. I doubt it matters, but they do.
                     app.add_systems($crate::reexports::bevy_app::prelude::Last,
                         $crate::cvar_modified_system::<$cvar_ident>
                     );
-                    if ($cvar_flags).contains($crate::CVarFlags::SAVED) {
-                        let type_registry = app.world().resource::<$crate::reexports::bevy_ecs::prelude::AppTypeRegistry>().read();
 
-                        ::std::assert!(
-                            type_registry.get_type_data::<$crate::reexports::bevy_reflect::ReflectDeserialize>(::std::any::TypeId::of::<$cvar_ty>()).is_some(),
-                            "CVar {} was registered as being a SAVED or MIRRORED cvar, but its value lacks reflection deserialization.",
-                            stringify!($cvar_ident)
-                        );
+                    {
+                        let mut type_registry = app.world().resource::<$crate::reexports::bevy_ecs::prelude::AppTypeRegistry>().write();
 
-                        ::std::assert!(
-                            type_registry.get_type_data::<$crate::reexports::bevy_reflect::ReflectSerialize>(::std::any::TypeId::of::<$cvar_ty>()).is_some(),
-                            "CVar {} was registered as being a SAVED or MIRRORED cvar, but its value lacks reflection serialization.",
-                            stringify!($cvar_ident)
-                        );
+                        if ($cvar_flags).contains($crate::CVarFlags::SAVED) {
+                            type_registry.register_type_data::<$cvar_ty, $crate::reexports::bevy_reflect::ReflectDeserialize>();
+                            type_registry.register_type_data::<$cvar_ty, $crate::reexports::bevy_reflect::ReflectSerialize>();
+
+                            // TODO(kaylie): This REQUIRES that a cvar's type be serializable, which may be undesired. Figure out a nice way to macro pattern match a solution.
+                            /*
+                            ::std::assert!(
+                                type_registry.get_type_data::<$crate::reexports::bevy_reflect::ReflectDeserialize>(::std::any::TypeId::of::<$cvar_ty>()).is_some(),
+                                "CVar {} was registered as being a SAVED or MIRRORED cvar, but its value lacks reflection deserialization.",
+                                stringify!($cvar_ident)
+                            );
+
+                            ::std::assert!(
+                                type_registry.get_type_data::<$crate::reexports::bevy_reflect::ReflectSerialize>(::std::any::TypeId::of::<$cvar_ty>()).is_some(),
+                                "CVar {} was registered as being a SAVED or MIRRORED cvar, but its value lacks reflection serialization.",
+                                stringify!($cvar_ident)
+                            );
+                            */
+                        }
                     }
                 )*
 

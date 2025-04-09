@@ -127,6 +127,17 @@ struct CVarTreeEditContext {
 }
 
 impl CVarTreeNode {
+    pub fn children(&self) -> Option<impl Iterator<Item = (&'_ &'static str, &'_ CVarTreeNode)>> {
+        match self {
+            CVarTreeNode::Leaf { name: _, reg: _ } => None,
+            CVarTreeNode::Branch { descendants } => Some(descendants.iter()),
+        }
+    }
+
+    pub fn is_leaf(&self) -> bool {
+        matches!(self, CVarTreeNode::Leaf { .. })
+    }
+
     pub fn insert(&mut self, name: &'static str, id: ComponentId) {
         let segments: Vec<&'static str> = name.split('.').collect();
         let edit_ctx = CVarTreeEditContext { new_cvar: name };
@@ -178,7 +189,7 @@ impl CVarTreeNode {
             CVarTreeNode::Branch { descendants } => {
                 assert!(
                     descendants
-                        .insert(key, CVarTreeNode::Leaf { name: key, reg })
+                        .insert(key, CVarTreeNode::Leaf { name: ctx.new_cvar, reg })
                         .is_none(),
                     "Attempted to insert a duplicate CVar. CVar in question is {}",
                     ctx.new_cvar
@@ -365,7 +376,7 @@ impl CVarManagement {
 
             let deserializer = registry
                 .get(field_0)
-                .ok_or(CVarError::CannotDeserialize)?
+                .ok_or(CVarError::BadCVarType)?
                 .data::<ReflectDeserialize>()
                 .ok_or(CVarError::CannotDeserialize)?;
 

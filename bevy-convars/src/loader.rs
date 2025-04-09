@@ -1,54 +1,39 @@
-//! Provides a layered config loader that can load multiple configs over top one another.
+//! Provides the ability to load TOML configuration files as a collection of CVars.
 
-use std::{path::Path, str::FromStr};
-
-use toml_edit::{DocumentMut, TomlError};
+use bevy_ecs::world::World;
+use bevy_log::warn;
+use serde::de::IntoDeserializer;
+use toml_edit::TomlError;
 
 mod cvar_doc;
+#[cfg(test)]
+mod tests;
 
-/// The layered config loader plugin.
-/// # Remarks
-/// This should be added AFTER all CVar plugins have been registered.
-pub struct ConfigLoaderPlugin {
-    sources: Vec<DocumentMut>,
-}
+pub use cvar_doc::*;
+
+use crate::{CVarError, CVarManagement, WorldExtensions};
+
+/// A config loader, which injests [DocumentContext]s and applies them to the world.
+#[derive(Default)]
+pub struct ConfigLoader {}
 
 /// Methods for creating a config loader.
-impl ConfigLoaderPlugin {
-    /// Create a config loader from an ordered list of TOML-containing strings.
-    pub fn from_strs(
-        sources: impl IntoIterator<Item = impl AsRef<str>>,
-    ) -> Result<Self, ConfigLoaderError> {
-        let documents: Result<Vec<_>, _> = sources
-            .into_iter()
-            .map(|s| DocumentMut::from_str(s.as_ref()))
-            .collect();
+impl ConfigLoader {
+    /// Applies a given config to the world.
+    pub fn apply<S: AsRef<str>>(&self, world: &mut World, document: DocumentContext<S>) -> Result<(), CVarError> {
+        let scanner = CVarDocScanner::new(document);
 
-        Ok(Self {
-            sources: documents?,
-        })
-    }
+        let cvars: Vec<(&str, toml_edit::Item)> = scanner.find_cvars(world.resource::<CVarManagement>());
 
-    /// Create a config loader from an ordered list of toml files to load.
-    #[cfg(feature = "config_loader_fs")]
-    pub fn from_files(
-        sources: impl IntoIterator<Item = impl AsRef<Path>>,
-    ) -> Result<Self, ConfigLoaderError> {
-        let mut source_contents = Vec::new();
-
-        for path in sources.into_iter() {
-            let data = std::fs::read_to_string(path)?;
-            source_contents.push(data);
+        for (cvar, value) in cvars {
+            if let toml_edit::Item::Value(value) = value {
+                world.set_cvar_deserialize(cvar, IntoDeserializer::into_deserializer(value))?;
+            } else {
+                warn!("CVar {cvar} couldn't be parsed, as it wasn't value-compatible.");
+            }
         }
 
-        let documents: Result<Vec<_>, _> = source_contents
-            .into_iter()
-            .map(|s| DocumentMut::from_str(&s))
-            .collect();
-
-        Ok(Self {
-            sources: documents?,
-        })
+        Ok(())
     }
 }
 
