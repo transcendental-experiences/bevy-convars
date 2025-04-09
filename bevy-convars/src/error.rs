@@ -1,5 +1,7 @@
 use bevy_ecs::world::error::ResourceFetchError;
 use bevy_reflect::ApplyError;
+#[cfg(feature = "parse_cvars")]
+use toml_edit::TomlError;
 
 /// Errors that can occur when manipulating CVars.
 #[derive(thiserror::Error, Debug)]
@@ -33,11 +35,22 @@ pub enum CVarError {
         "The requested operation conflicts with another ongoing operation on the world and cannot be performed."
     )]
     AccessConflict,
+    #[cfg(feature = "parse_cvars")]
+    /// An error when parsing a TOML document.
+    #[error(transparent)]
+    TomlError(TomlError)
 }
 
 impl From<ApplyError> for CVarError {
     fn from(value: ApplyError) -> Self {
         Self::FailedApply { inner: value }
+    }
+}
+
+#[cfg(feature = "parse_cvars")]
+impl From<TomlError> for CVarError {
+    fn from(value: TomlError) -> Self {
+        Self::TomlError(value)
     }
 }
 

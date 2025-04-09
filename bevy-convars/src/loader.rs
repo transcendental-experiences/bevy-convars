@@ -3,11 +3,16 @@
 use bevy_ecs::world::World;
 use bevy_log::warn;
 use serde::de::IntoDeserializer;
-use toml_edit::TomlError;
+use toml_edit::{ImDocument, TomlError};
 
 mod cvar_doc;
 #[cfg(test)]
 mod tests;
+#[cfg(feature = "config_loader_asset")]
+mod assets;
+
+#[cfg(feature = "config_loader_asset")]
+pub use assets::*;
 
 pub use cvar_doc::*;
 
@@ -20,10 +25,15 @@ pub struct ConfigLoader {}
 /// Methods for creating a config loader.
 impl ConfigLoader {
     /// Applies a given config to the world.
-    pub fn apply<S: AsRef<str>>(&self, world: &mut World, document: DocumentContext<S>) -> Result<(), CVarError> {
+    pub fn apply<S: AsRef<str>>(
+        &self,
+        world: &mut World,
+        document: DocumentContext<S>,
+    ) -> Result<(), CVarError> {
         let scanner = CVarDocScanner::new(document);
 
-        let cvars: Vec<(&str, toml_edit::Item)> = scanner.find_cvars(world.resource::<CVarManagement>());
+        let cvars: Vec<(&str, toml_edit::Item)> =
+            scanner.find_cvars(world.resource::<CVarManagement>());
 
         for (cvar, value) in cvars {
             if let toml_edit::Item::Value(value) = value {
@@ -32,6 +42,22 @@ impl ConfigLoader {
                 warn!("CVar {cvar} couldn't be parsed, as it wasn't value-compatible.");
             }
         }
+
+        Ok(())
+    }
+
+    /// Applies a given config to the world, by parsing it into a TOML document and [ConfigLoader::apply]ing that.
+    pub fn apply_from_string(
+        &self,
+        world: &mut World,
+        document: &str,
+        source: Option<&str>,
+    ) -> Result<(), CVarError> {
+        let document = ImDocument::parse(document)?;
+
+        let document = DocumentContext::new(document, source.unwrap_or("NO_SOURCE").to_owned());
+
+        self.apply(world, document)?;
 
         Ok(())
     }

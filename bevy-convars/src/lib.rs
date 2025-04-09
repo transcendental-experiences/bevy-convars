@@ -76,7 +76,7 @@ mod types;
 pub use error::*;
 pub use types::*;
 pub mod builtin;
-#[cfg(all(feature = "config_loader", feature = "incomplete"))]
+#[cfg(feature = "config_loader")]
 pub mod loader;
 #[cfg(feature = "parse_cvars")]
 pub mod parse;
@@ -189,7 +189,13 @@ impl CVarTreeNode {
             CVarTreeNode::Branch { descendants } => {
                 assert!(
                     descendants
-                        .insert(key, CVarTreeNode::Leaf { name: ctx.new_cvar, reg })
+                        .insert(
+                            key,
+                            CVarTreeNode::Leaf {
+                                name: ctx.new_cvar,
+                                reg
+                            }
+                        )
                         .is_none(),
                     "Attempted to insert a duplicate CVar. CVar in question is {}",
                     ctx.new_cvar

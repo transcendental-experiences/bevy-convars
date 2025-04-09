@@ -10,9 +10,16 @@ pub(crate) struct CVarDocScanner<S: AsRef<str>> {
 }
 
 /// A toml document and it's associated source data
+#[derive(Clone)]
 pub struct DocumentContext<S: AsRef<str>> {
     document: ImDocument<S>,
     source: String,
+}
+
+impl Default for DocumentContext<String> {
+    fn default() -> Self {
+        Self { document: ImDocument::parse(String::new()).unwrap(), source: Default::default() }
+    }
 }
 
 impl<S: AsRef<str>> DocumentContext<S> {
