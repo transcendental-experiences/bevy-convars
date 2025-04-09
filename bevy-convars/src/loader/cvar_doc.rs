@@ -27,6 +27,11 @@ impl<S: AsRef<str>> DocumentContext<S> {
     pub fn new(document: ImDocument<S>, source: String) -> Self {
         Self { document, source }
     }
+    
+    /// Returns the source of this document.
+    pub fn source(&self) -> &str {
+        &self.source
+    }
 }
 
 impl<S: AsRef<str>> CVarDocScanner<S> {

@@ -1,12 +1,25 @@
-//! Provides an implementation of ConVars, a form of global configuration for an application.
+#![deny(missing_docs)]
+//! Provides an implementation of ConVars (henceforth CVars), a form of global configuration for an application.
 //!
 //! Intended for full applications, not for libraries!
 //! If you're a library author, the easiest and best way to integrate is simply to make your library configurable, and allow the end user to create convars themselves.
 //!
-//!
-//! # Example
-//! ```ignore
-//! crate::cvar_collection! {
+//! # Examples
+//! ## Create and use CVars
+//! ```
+//! # #![allow(dead_code)]
+//! # use bevy_ecs::prelude::*;
+//! # use bevy_app::prelude::*;
+//! # use bevy_convars::*;
+//! # use serde;
+//! #
+//! # // Dummies to mock the original code.
+//! # #[derive(Copy, Clone, serde::Deserialize, serde::Serialize, bevy_reflect::Reflect, Debug)] pub enum SsaoQuality { High }
+//! # #[derive(Copy, Clone, serde::Deserialize, serde::Serialize, bevy_reflect::Reflect, Debug)] pub enum MsaaSamplingConfig { Msaa4 }
+//! # #[derive(Copy, Clone, serde::Deserialize, serde::Serialize, bevy_reflect::Reflect, Debug)] pub enum FxaaSensitivity { Medium }
+//! # #[derive(Copy, Clone, serde::Deserialize, serde::Serialize, bevy_reflect::Reflect, Debug)] pub enum AntialiasMethod { Fxaa }
+//! #
+//! bevy_convars::cvar_collection! {
 //!     pub struct RenderCVars & RenderCVarsMut {
 //!         enable_xr = cvar EnableXr("render.enable_xr", CVarFlags::SAVED): bool = false,
 //!         enable_renderdoc = cvar EnableRenderdoc("render.enable_renderdoc", CVarFlags::LOCAL): bool = false,
@@ -29,16 +42,14 @@
 //!     }
 //!
 //!     pub struct RenderCVarsPlugin;
-//!}
+//! }
 //!
-//!  ...
 //!
-//! fn sync_cvars_to_camera(
-//!    cameras: Query<(Entity, Ref<SettingsAwareCamera>)>,
+//! fn my_system(
 //!    cvars: RenderCVars,
 //!    enable_ssao: Res<EnableSsao>,
 //!    mut commands: Commands,
-//!) {
+//! ) {
 //!    // Can read directly out of the RenderCVars param..
 //!    let aa_method = **cvars.aa_method;
 //!
@@ -46,11 +57,59 @@
 //!    // All CVar types implement Deref and DerefMut for their inner type to make them easy to unpack and modify.
 //!    let ssao_on = **enable_ssao;
 //!
-//!    ...
-//!}
-//!```
-
-#![deny(missing_docs)]
+//!    // ...
+//! }
+//! ```
+//!
+//! ## Load configuration files
+//! ```no_run
+//! # #[allow(unexpected_cfgs)]
+//! # use bevy_ecs::prelude::*;
+//! # use bevy_app::prelude::*;
+//! # use bevy_convars::prelude::*;
+//! # use std::path::PathBuf;
+//! # let mut app = App::new();
+//! # fn get_user_directory() -> PathBuf { unimplemented!() }
+//! // Add all your CVar plugins first, then:
+//!
+//! // Bring your own implementation, I recommend the `directories` crate.
+//! let mut user_data_directory: PathBuf = get_user_directory();
+//!
+//! // Consider making this file name itself a CVar so users can specify an
+//! // override on the command line.
+//! user_data_directory.push("user_config.toml");
+//!
+//! let cvar_loader =
+//!     CVarLoaderPluginBuilder::fancy()
+//!         // Load dev tooling config if we have them enabled.
+//!         .add_asset_layer_if(cfg!(feature = "dev_tools"), "dev_tools.toml")
+//!         // And load the user's config file.
+//!         .with_user_config_file(user_data_directory)
+//!         .build();
+//!
+//! // Add the plugin, loading all layers and user configuration in one go.
+//! app.add_plugins(cvar_loader);
+//! ```
+//!
+//! ## Apply command-line overrides
+//! ```no_run
+//! # #[allow(unexpected_cfgs)]
+//! # use bevy_ecs::prelude::*;
+//! # use bevy_app::prelude::*;
+//! # use bevy_convars::prelude::*;
+//! # let mut app = App::new();
+//! // Through one means or another, get yourself a list of CVarOverride.
+//! // CVarOverride implements FromStr, so most command-line parsing libraries
+//! // like clap can do it for you.
+//!
+//! let overrides: Vec<CVarOverride> = todo!();
+//!
+//! let world = app.world_mut();
+//!
+//! for cvar in overrides.iter() {
+//!     world.set_cvar_with_override(cvar);
+//! }
+//! ```
 
 use bevy_app::App;
 use bevy_app::prelude::*;
@@ -80,6 +139,7 @@ pub mod builtin;
 pub mod loader;
 #[cfg(feature = "parse_cvars")]
 pub mod parse;
+pub mod prelude;
 pub mod reflect;
 
 #[cfg(test)]

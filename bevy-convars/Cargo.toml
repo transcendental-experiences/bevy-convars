@@ -13,6 +13,7 @@ rust-version = "1.85.0"
 [dependencies]
 bevy_ecs = { git = "https://github.com/bevyengine/bevy.git", rev = "0410212f3da739fc84f22435d921af81c0ed6abb" }
 bevy_asset = { git = "https://github.com/bevyengine/bevy.git", rev = "0410212f3da739fc84f22435d921af81c0ed6abb", optional = true }
+bevy_tasks = { git = "https://github.com/bevyengine/bevy.git", rev = "0410212f3da739fc84f22435d921af81c0ed6abb", optional = true }
 bevy_app = { git = "https://github.com/bevyengine/bevy.git", rev = "0410212f3da739fc84f22435d921af81c0ed6abb" }
 bevy_reflect = { git = "https://github.com/bevyengine/bevy.git", rev = "0410212f3da739fc84f22435d921af81c0ed6abb" }
 bevy_log = { git = "https://github.com/bevyengine/bevy.git", rev = "0410212f3da739fc84f22435d921af81c0ed6abb" }
@@ -36,7 +37,7 @@ config_loader = ["parse_cvars"]
 config_loader_fs = ["config_loader"]
 
 # Allows applying configs from bevy Assets.
-config_loader_asset = ["config_loader", "dep:bevy_asset"]
+config_loader_asset = ["config_loader", "dep:bevy_asset", "dep:bevy_tasks"]
 
 # Gates incomplete features. No SemVer guarantees are provided for features within this set.
 incomplete = []
