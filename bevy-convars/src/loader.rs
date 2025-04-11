@@ -4,7 +4,7 @@
 //! No default for the user's config file is provided, however one can use the [directories](https://crates.io/crates/directories) library to get platform-specific locations for those files.
 //!
 
-use std::{fs::File, io::Read, path::PathBuf};
+use std::{fmt::Display, fs::File, io::Read, path::PathBuf};
 
 use bevy_app::Plugin;
 #[cfg(feature = "config_loader_asset")]
@@ -73,14 +73,22 @@ impl ConfigLoader {
 }
 
 /// A non-recoverable error that can occur when loading configuration.
-#[derive(thiserror::Error, Debug)]
+#[derive(Debug)]
+#[non_exhaustive]
 pub enum ConfigLoaderError {
     /// Wrapper over an inner parsing error.
-    #[error(transparent)]
     ParseError(TomlError),
     /// Wrapper over an inner IO error.
-    #[error(transparent)]
     IoError(std::io::Error),
+}
+
+impl Display for ConfigLoaderError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ConfigLoaderError::ParseError(toml_error) => write!(f, "{toml_error}"),
+            ConfigLoaderError::IoError(error) => write!(f, "{error}"),
+        }
+    }
 }
 
 impl From<TomlError> for ConfigLoaderError {

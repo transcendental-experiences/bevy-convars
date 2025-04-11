@@ -18,7 +18,6 @@ bevy_app = { git = "https://github.com/bevyengine/bevy.git", rev = "0410212f3da7
 bevy_reflect = { git = "https://github.com/bevyengine/bevy.git", rev = "0410212f3da739fc84f22435d921af81c0ed6abb" }
 bevy_log = { git = "https://github.com/bevyengine/bevy.git", rev = "0410212f3da739fc84f22435d921af81c0ed6abb" }
 bevy_platform_support = { git = "https://github.com/bevyengine/bevy.git", rev = "0410212f3da739fc84f22435d921af81c0ed6abb" }
-thiserror = "2.0"
 serde = "1"
 static_assertions = "1.1.0"
 toml_edit = { version = "0.22", features = ["serde"], optional = true }
