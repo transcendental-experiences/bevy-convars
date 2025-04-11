@@ -11,19 +11,31 @@ repository = "https://github.com/transcendental-experiences/bevy-convars"
 rust-version = "1.85.0"
 
 [dependencies]
-bevy_ecs = { git = "https://github.com/bevyengine/bevy.git", rev = "0410212f3da739fc84f22435d921af81c0ed6abb" }
-bevy_asset = { git = "https://github.com/bevyengine/bevy.git", rev = "0410212f3da739fc84f22435d921af81c0ed6abb", optional = true }
-bevy_tasks = { git = "https://github.com/bevyengine/bevy.git", rev = "0410212f3da739fc84f22435d921af81c0ed6abb", optional = true }
-bevy_app = { git = "https://github.com/bevyengine/bevy.git", rev = "0410212f3da739fc84f22435d921af81c0ed6abb" }
-bevy_reflect = { git = "https://github.com/bevyengine/bevy.git", rev = "0410212f3da739fc84f22435d921af81c0ed6abb" }
-bevy_log = { git = "https://github.com/bevyengine/bevy.git", rev = "0410212f3da739fc84f22435d921af81c0ed6abb" }
-bevy_platform_support = { git = "https://github.com/bevyengine/bevy.git", rev = "0410212f3da739fc84f22435d921af81c0ed6abb" }
-serde = "1"
+bevy_ecs = { git = "https://github.com/bevyengine/bevy.git", rev = "0410212f3da739fc84f22435d921af81c0ed6abb", default-features = false, features = [
+] }
+bevy_asset = { git = "https://github.com/bevyengine/bevy.git", rev = "0410212f3da739fc84f22435d921af81c0ed6abb", optional = true, default-features = false, features = [
+] }
+bevy_tasks = { git = "https://github.com/bevyengine/bevy.git", rev = "0410212f3da739fc84f22435d921af81c0ed6abb", optional = true, default-features = false, features = [
+] }
+bevy_app = { git = "https://github.com/bevyengine/bevy.git", rev = "0410212f3da739fc84f22435d921af81c0ed6abb", default-features = false, features = [
+] }
+bevy_reflect = { git = "https://github.com/bevyengine/bevy.git", rev = "0410212f3da739fc84f22435d921af81c0ed6abb", default-features = false, features = [
+] }
+bevy_log = { git = "https://github.com/bevyengine/bevy.git", rev = "0410212f3da739fc84f22435d921af81c0ed6abb", default-features = false, features = [
+] }
+bevy_platform_support = { git = "https://github.com/bevyengine/bevy.git", rev = "0410212f3da739fc84f22435d921af81c0ed6abb", default-features = false, features = [
+] }
+serde = { version = "1", default-features = false, features = ["derive"] }
 static_assertions = "1.1.0"
 toml_edit = { version = "0.22", features = ["serde"], optional = true }
 
 [features]
-default = ["parse_cvars", "config_loader", "config_loader_fs", "config_loader_asset"]
+default = [
+    "parse_cvars",
+    "config_loader",
+    "config_loader_fs",
+    "config_loader_asset",
+]
 
 # Allows parsing convars and convar overrides from TOML.
 # Does not enable or disable serde, serde is always present pending a refactor.
