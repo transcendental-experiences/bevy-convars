@@ -1,6 +1,6 @@
 use toml_edit::{ImDocument, Item, Table};
 
-use crate::{reflect::ReflectCVar, CVarFlags, CVarManagement, CVarTreeNode};
+use crate::{CVarFlags, CVarManagement, CVarTreeNode, reflect::ReflectCVar};
 
 pub(crate) type UnparsedCVar<'a> = (&'a str, Item);
 
@@ -18,7 +18,10 @@ pub struct DocumentContext<S: AsRef<str>> {
 
 impl Default for DocumentContext<String> {
     fn default() -> Self {
-        Self { document: ImDocument::parse(String::new()).unwrap(), source: Default::default() }
+        Self {
+            document: ImDocument::parse(String::new()).unwrap(),
+            source: Default::default(),
+        }
     }
 }
 
@@ -27,7 +30,7 @@ impl<S: AsRef<str>> DocumentContext<S> {
     pub fn new(document: ImDocument<S>, source: String) -> Self {
         Self { document, source }
     }
-    
+
     /// Returns the source of this document.
     pub fn source(&self) -> &str {
         &self.source
@@ -43,20 +46,31 @@ impl<S: AsRef<str>> CVarDocScanner<S> {
     }
 
     /// Recursively traverse a TOML document for CVars.
-    fn traverse(&self, item: &Table, management: &CVarManagement, tree: &CVarTreeNode, outp: &mut Vec<UnparsedCVar<'_>>) {
+    fn traverse(
+        &self,
+        item: &Table,
+        management: &CVarManagement,
+        tree: &CVarTreeNode,
+        outp: &mut Vec<UnparsedCVar<'_>>,
+    ) {
         for (key, node) in tree.children().unwrap() {
             // Check if the node key exists within the document we're traversing, and if so get the value.
             println!("{key}");
             if let Some((_, value)) = item.get_key_value(key) {
                 if node.is_leaf() {
-                    let CVarTreeNode::Leaf { name, reg } = node else { unreachable!() };
+                    let CVarTreeNode::Leaf { name, reg } = node else {
+                        unreachable!()
+                    };
 
                     let meta = management.resources[reg].data::<ReflectCVar>().unwrap();
 
                     if meta.flags().contains(CVarFlags::SAVED) {
                         outp.push((*name, value.clone()));
                     } else {
-                        bevy_log::warn!("Found cvar {name} in {}, but that CVar cannot be saved (and as such cannot be loaded.)", self.source);
+                        bevy_log::warn!(
+                            "Found cvar {name} in {}, but that CVar cannot be saved (and as such cannot be loaded.)",
+                            self.source
+                        );
                     }
                 } else if let Some(item) = value.as_table() {
                     self.traverse(item, management, node, outp);
@@ -74,7 +88,12 @@ impl<S: AsRef<str>> CVarDocScanner<S> {
     pub fn find_cvars(&self, management: &CVarManagement) -> Vec<UnparsedCVar<'_>> {
         let mut outp = vec![];
 
-        self.traverse(self.document.as_table(),  management, &management.tree, &mut outp);
+        self.traverse(
+            self.document.as_table(),
+            management,
+            &management.tree,
+            &mut outp,
+        );
 
         outp
     }

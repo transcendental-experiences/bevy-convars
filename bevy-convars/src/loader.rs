@@ -25,7 +25,7 @@ pub use assets::*;
 
 pub use cvar_doc::*;
 
-use crate::{builtin::ConfigLayers, CVarError, CVarManagement, WorldExtensions};
+use crate::{CVarError, CVarManagement, WorldExtensions, builtin::ConfigLayers};
 
 /// A config loader, which injests [DocumentContext]s and applies them to the world.
 #[derive(Default)]
@@ -310,15 +310,25 @@ impl Plugin for CVarLoaderPlugin {
         #[cfg(feature = "config_loader_fs")]
         {
             if let Some(ref path) = self.user_config_file {
-                let res = File::options().read(true).create(true).append(true).open(path);
+                let res = File::options()
+                    .read(true)
+                    .create(true)
+                    .append(true)
+                    .open(path);
 
                 if let Err(e) = res {
-                    warn!("Failed to create or open the user config file at {path:?}, got error: {e}");
+                    warn!(
+                        "Failed to create or open the user config file at {path:?}, got error: {e}"
+                    );
                 } else if let Ok(mut file) = res {
                     let mut buf = String::new();
                     file.read_to_string(&mut buf).unwrap();
 
-                    let res = loader.apply_from_string(app.world_mut(), &buf, Some(&path.to_string_lossy()));
+                    let res = loader.apply_from_string(
+                        app.world_mut(),
+                        &buf,
+                        Some(&path.to_string_lossy()),
+                    );
 
                     if let Err(e) = res {
                         warn!(

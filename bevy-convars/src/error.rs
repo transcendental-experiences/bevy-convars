@@ -28,7 +28,7 @@ pub enum CVarError {
     AccessConflict,
     #[cfg(feature = "parse_cvars")]
     /// An error when parsing a TOML document.
-    TomlError(TomlError)
+    TomlError(TomlError),
 }
 
 impl std::error::Error for CVarError {}
@@ -37,12 +37,22 @@ impl Display for CVarError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             CVarError::UnknownCVar => write!(f, "Unknown CVar."),
-            CVarError::BadCVarType => write!(f, "CVar is not internally a Tuple Struct of the expected layout, did you try to register it manually?"),
+            CVarError::BadCVarType => write!(
+                f,
+                "CVar is not internally a Tuple Struct of the expected layout, did you try to register it manually?"
+            ),
             CVarError::MissingCid => write!(f, "Missing ComponentID, was the resource registered?"),
-            CVarError::CannotDeserialize => write!(f, "Underlying CVar type cannot be deserialized."),
+            CVarError::CannotDeserialize => {
+                write!(f, "Underlying CVar type cannot be deserialized.")
+            }
             CVarError::FailedDeserialize(inner) => write!(f, "Failed to deserialize: {inner}"),
-            CVarError::FailedApply { inner } => write!(f, "Failed to apply value to CVar. ({inner:?})"),
-            CVarError::AccessConflict => write!(f, "The requested operation conflicts with another ongoing operation on the world and cannot be performed."),
+            CVarError::FailedApply { inner } => {
+                write!(f, "Failed to apply value to CVar. ({inner:?})")
+            }
+            CVarError::AccessConflict => write!(
+                f,
+                "The requested operation conflicts with another ongoing operation on the world and cannot be performed."
+            ),
             #[cfg(feature = "parse_cvars")]
             CVarError::TomlError(toml_error) => write!(f, "TOML parsing error: {toml_error}"),
         }

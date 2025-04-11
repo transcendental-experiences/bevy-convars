@@ -1,7 +1,7 @@
-use std::error::Error;
 use bevy_asset::{Asset, AssetLoader, Assets, AsyncReadExt as _, Handle};
 use bevy_ecs::world::World;
 use bevy_reflect::Reflect;
+use std::error::Error;
 use toml_edit::ImDocument;
 
 use crate::CVarError;
@@ -15,7 +15,12 @@ impl ConfigLoader {
         world: &mut World,
         asset: Handle<CVarConfig>,
     ) -> Result<(), CVarError> {
-        let document = world.resource::<Assets<CVarConfig>>().get(&asset).unwrap().clone().0;
+        let document = world
+            .resource::<Assets<CVarConfig>>()
+            .get(&asset)
+            .unwrap()
+            .clone()
+            .0;
 
         self.apply(world, document)?;
 
