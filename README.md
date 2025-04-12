@@ -48,6 +48,7 @@ fn sync_cvars_to_camera(
 ```
 
 ## State of Development
+This crate is very early, and while it probably can replace your existing solution it needs some elbow grease to use outside of the supported usecases.
 - [x] Config loading.
   - [x] Layered configs loading.
   - [ ] Builtin system for config presets (can easily be implemented by loading config files containing the preset.)
