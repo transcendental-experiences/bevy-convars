@@ -1,6 +1,6 @@
 [package]
 name = "bevy-convars"
-version = "0.1.0-prepublish"
+version = "0.1.0"
 edition = "2024"
 categories = ["config", "game-development"]
 keywords = ["config", "configuration", "cvars", "convars", "bevy"]
@@ -11,19 +11,19 @@ repository = "https://github.com/transcendental-experiences/bevy-convars"
 rust-version = "1.85.0"
 
 [dependencies]
-bevy_ecs = { git = "https://github.com/bevyengine/bevy.git", rev = "0410212f3da739fc84f22435d921af81c0ed6abb", default-features = false, features = [
+bevy_ecs = { version = "0.16.0-rc.4", default-features = false, features = [
 ] }
-bevy_asset = { git = "https://github.com/bevyengine/bevy.git", rev = "0410212f3da739fc84f22435d921af81c0ed6abb", optional = true, default-features = false, features = [
+bevy_asset = { version = "0.16.0-rc.4", optional = true, default-features = false, features = [
 ] }
-bevy_tasks = { git = "https://github.com/bevyengine/bevy.git", rev = "0410212f3da739fc84f22435d921af81c0ed6abb", optional = true, default-features = false, features = [
+bevy_tasks = { version = "0.16.0-rc.4", optional = true, default-features = false, features = [
 ] }
-bevy_app = { git = "https://github.com/bevyengine/bevy.git", rev = "0410212f3da739fc84f22435d921af81c0ed6abb", default-features = false, features = [
+bevy_app = { version = "0.16.0-rc.4", default-features = false, features = [
 ] }
-bevy_reflect = { git = "https://github.com/bevyengine/bevy.git", rev = "0410212f3da739fc84f22435d921af81c0ed6abb", default-features = false, features = [
+bevy_reflect = { version = "0.16.0-rc.4", default-features = false, features = [
 ] }
-bevy_log = { git = "https://github.com/bevyengine/bevy.git", rev = "0410212f3da739fc84f22435d921af81c0ed6abb", default-features = false, features = [
+bevy_log = { version = "0.16.0-rc.4", default-features = false, features = [
 ] }
-bevy_platform_support = { git = "https://github.com/bevyengine/bevy.git", rev = "0410212f3da739fc84f22435d921af81c0ed6abb", default-features = false, features = [
+bevy_platform_support = { version = "0.16.0-rc.4", default-features = false, features = [
 ] }
 serde = { version = "1", default-features = false, features = ["derive"] }
 static_assertions = "1.1.0"

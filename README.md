@@ -1,6 +1,3 @@
-# PREPUBLISH!
-This ain't ready quite yet, but it will be soon! Need to migrate/rewrite/cleanup more bits of code from the monorepo and finish some unfinished functionality. Bevy is currently pinned to a git commit until 0.16 or a new rc releases.
-
 # Bevy Convars
 This is a crate that provides an implementation of Convars (console variables or config variables depending on who you ask), provided as bevy resources, with support for serialization, change detection, and the works.
 Convars are presented as resources within the Bevy world, and can be accessed as such without any special code.
@@ -49,6 +46,24 @@ fn sync_cvars_to_camera(
    ...
 }
 ```
+
+## State of Development
+- [x] Config loading.
+  - [x] Layered configs loading.
+  - [ ] Builtin system for config presets (can easily be implemented by loading config files containing the preset.)
+- [ ] Config *saving*.
+- [x] Config reflection.
+- [x] Intelligent default value handling.
+- [ ] Built-in support for existing netcode libraries.
+- [ ] Full no_std support. (Needs further testing and work)
+  - [ ] WASM support.
+- [x] Minimal set of required Bevy features.
+
+## Bevy Compatibility
+This library tracks Bevy's releases, at this time the following holds:
+| Bevy Version | bevy-convars Version |
+| ------------ | -------------------- |
+| 0.16.0-rc.4  | 0.1.0                |
 
 ## License
 This work is available under EITHER the Apache 2.0 license (as provided in LICENSE-APACHE) or the MIT license (as provided in LICENSE-MIT).
