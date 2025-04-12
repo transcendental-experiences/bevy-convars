@@ -5,6 +5,7 @@ edition = "2024"
 categories = ["config", "game-development"]
 keywords = ["config", "configuration", "cvars", "convars", "bevy"]
 license = "MIT OR Apache-2.0"
+readme = "../README.md"
 
 description = "An implementation of convars (config or console variables) for configuring your Bevy application."
 repository = "https://github.com/transcendental-experiences/bevy-convars"
