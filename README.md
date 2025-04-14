@@ -5,7 +5,7 @@ This is a crate that provides an implementation of Convars (console variables or
 Convars are presented as resources within the Bevy world, and can be accessed as such without any special code.
 
 ```rust
-crate::cvar_collection! {
+bevy_convars::cvar_collection! {
     pub struct RenderCVars & RenderCVarsMut {
         enable_xr = cvar EnableXr("render.enable_xr", CVarFlags::SAVED): bool = false,
         enable_renderdoc = cvar EnableRenderdoc("render.enable_renderdoc", CVarFlags::LOCAL): bool = false,
@@ -30,10 +30,8 @@ crate::cvar_collection! {
     pub struct RenderCVarsPlugin;
 }
 
- ...
 
-fn sync_cvars_to_camera(
-   cameras: Query<(Entity, Ref<SettingsAwareCamera>)>,
+fn my_system(
    cvars: RenderCVars,
    enable_ssao: Res<EnableSsao>,
    mut commands: Commands,
@@ -45,22 +43,34 @@ fn sync_cvars_to_camera(
    // All CVar types implement Deref and DerefMut for their inner type to make them easy to unpack and modify.
    let ssao_on = **enable_ssao;
 
-   ...
+   // ...
 }
 ```
 
 ## State of Development
-This crate is very early, and while it probably can replace your existing solution it needs some elbow grease to use outside of the supported usecases.
+This crate is a bit early, and while it likely can replace your existing solution it needs some elbow grease to use outside of the supported use cases.
+
+Contributions are welcome!
+
 - [x] Config loading.
   - [x] Layered configs loading.
   - [ ] Builtin system for config presets (can easily be implemented by loading config files containing the preset.)
-- [ ] Config *saving*.
+  - [ ] Support for alternate, non-TOML formats and mediums (like SQLite)
+- [x] Config saving.
+  - [x] File format preserving saving. (i.e. not modifying comments/etc)
+  - [x] Aware of the difference between user set and default values, even if the values are equal.
+  - [ ] Optional automatic sync to disk for user config.
+  - [ ] Support for alternate, non-TOML formats and mediums (like SQLite)
 - [x] Config reflection.
 - [x] Intelligent default value handling.
 - [ ] Built-in support for existing netcode libraries.
+  - [ ] [bevy_replicon](https://github.com/projectharmonia/bevy_replicon)
+  - [ ] [lightyear](https://github.com/cBournhonesque/lightyear)
 - [ ] Full no_std support. (Needs further testing and work)
   - [ ] WASM support.
 - [x] Minimal set of required Bevy features.
+- [ ] Doesn't require config options to be serializable.
+- [ ] Fully panic safe.
 
 ## Bevy Compatibility
 This library tracks Bevy's releases, at this time the following holds:

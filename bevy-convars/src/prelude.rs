@@ -13,4 +13,7 @@ pub use crate::loader::CVarLoaderPlugin;
 #[cfg(feature = "parse_cvars")]
 pub use crate::parse::CVarOverride;
 
+#[cfg(feature = "parse_cvars")]
+pub use crate::save::CVarSaveContext;
+
 pub use crate::WorldExtensions;

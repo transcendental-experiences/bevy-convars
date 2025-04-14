@@ -12,12 +12,16 @@ repository = "https://github.com/transcendental-experiences/bevy-convars"
 rust-version = "1.85.0"
 
 [dependencies]
-bevy_ecs = { version = "0.16.0-rc.4", default-features = false, features = [] }
+bevy_ecs = { version = "0.16.0-rc.4", default-features = false, features = [
+    "bevy_reflect",
+] }
 bevy_asset = { version = "0.16.0-rc.4", optional = true, default-features = false, features = [
 ] }
 bevy_tasks = { version = "0.16.0-rc.4", optional = true, default-features = false, features = [
 ] }
-bevy_app = { version = "0.16.0-rc.4", default-features = false, features = [] }
+bevy_app = { version = "0.16.0-rc.4", default-features = false, features = [
+    "bevy_reflect",
+] }
 bevy_reflect = { version = "0.16.0-rc.4", default-features = false, features = [
 ] }
 bevy_log = { version = "0.16.0-rc.4", default-features = false, features = [] }

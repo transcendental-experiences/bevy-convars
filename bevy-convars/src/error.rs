@@ -29,6 +29,13 @@ pub enum CVarError {
     #[cfg(feature = "parse_cvars")]
     /// An error when parsing a TOML document.
     TomlError(TomlError),
+
+    /// An error when saving encounters malformed TOML structure.
+    MalformedConfigDuringWrite(&'static str),
+
+    /// An error when serializing TOML data.
+    #[cfg(feature = "parse_cvars")]
+    TomlSerError(toml_edit::ser::Error),
 }
 
 impl std::error::Error for CVarError {}
@@ -55,6 +62,11 @@ impl Display for CVarError {
             ),
             #[cfg(feature = "parse_cvars")]
             CVarError::TomlError(toml_error) => write!(f, "TOML parsing error: {toml_error}"),
+            CVarError::MalformedConfigDuringWrite(info) => {
+                write!(f, "Malformed config during write: {info}")
+            }
+            #[cfg(feature = "parse_cvars")]
+            CVarError::TomlSerError(error) => write!(f, "TOML serializing error: {error}"),
         }
     }
 }
@@ -69,6 +81,13 @@ impl From<ApplyError> for CVarError {
 impl From<TomlError> for CVarError {
     fn from(value: TomlError) -> Self {
         Self::TomlError(value)
+    }
+}
+
+#[cfg(feature = "parse_cvars")]
+impl From<toml_edit::ser::Error> for CVarError {
+    fn from(value: toml_edit::ser::Error) -> Self {
+        Self::TomlSerError(value)
     }
 }
 

@@ -35,6 +35,8 @@ pub mod builtin;
 pub mod loader;
 #[cfg(feature = "parse_cvars")]
 pub mod parse;
+#[cfg(feature = "parse_cvars")]
+pub mod save;
 pub mod prelude;
 pub mod reflect;
 
@@ -400,6 +402,11 @@ impl CVarManagement {
         )?;
 
         Ok(())
+    }
+
+    /// Returns an iterator for all CVar type registrations.
+    pub fn iterate_cvar_types(&self) -> impl Iterator<Item = &TypeRegistration> {
+        self.resources.values()
     }
 }
 

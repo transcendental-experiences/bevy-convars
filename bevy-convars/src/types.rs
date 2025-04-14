@@ -6,19 +6,20 @@ use std::ops;
 /// Every flag above the 32nd bit is reserved for the user and will not be used without a major version update.
 ///
 /// Every flag below is reserved to implementation.
-// Bevy cannot reflect over bitflags!, so we do it the old fashioned way.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Reflect)]
 pub struct CVarFlags(pub u64);
 
 impl CVarFlags {
-    /// The no-op/default flag set.
+    /// The no-op/default flag set. You don't need to specify this if you have other flags, it's just null.
     pub const LOCAL: CVarFlags = CVarFlags(0);
     /// Indicates this cvar should be saved to disk as part of the user's settings.
+    ///
+    /// This is respected by [CVarSaveContext](crate::save::CVarSaveContext).
     pub const SAVED: CVarFlags = CVarFlags(0b0000_0001);
     /// Indicates this cvar is for mirrored to and from peers for replication. Peers will know the value of this CVar for this client.
     pub const MIRRORED: CVarFlags = CVarFlags(0b0000_0010);
     /// Indicates this cvar is respected at runtime if modified. This is a hint of intent!
-    /// CVars without this flag set should warn the user to restart the game.
+    /// CVars without this flag set should warn the user to restart the game when modified.
     pub const RUNTIME: CVarFlags = CVarFlags(0b0000_0100);
 }
 

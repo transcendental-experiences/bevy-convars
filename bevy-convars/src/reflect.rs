@@ -3,12 +3,14 @@
 use std::any::TypeId;
 
 use bevy_ecs::{change_detection::DetectChanges, prelude::Resource, world::Ref};
-use bevy_reflect::{FromType, PartialReflect, Reflectable};
+use bevy_reflect::{FromType, PartialReflect, Reflect};
 
 use crate::{CVarError, CVarFlags};
 
 /// Static meta information about a cvar, like its contained type and path.
-pub trait CVarMeta: Resource + std::ops::Deref<Target = Self::Inner> {
+pub trait CVarMeta:
+    Resource + std::ops::Deref<Target = Self::Inner> + std::ops::DerefMut<Target = Self::Inner>
+{
     /// The inner type of the CVar.
     type Inner: std::fmt::Debug + PartialReflect;
     /// The path of the CVar within the config.
@@ -85,7 +87,7 @@ impl ReflectCVar {
     }
 
     /// Returns whether or not the instance is of the default value.
-    pub fn is_default_value<T: Reflectable>(&self, r: Ref<T>) -> bool {
+    pub fn is_default_value<T: Reflect + ?Sized>(&self, r: Ref<T>) -> bool {
         (self.is_default_value)(r.map(|x| x.as_partial_reflect()))
     }
 }
