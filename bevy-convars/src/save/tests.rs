@@ -22,10 +22,10 @@ pub fn save_unmodified_world() -> Result<(), CVarError> {
     Ok(())
 }
 
-const EXPECTED_1: &str = include_str!("expected_cfg_1.toml");
-
 #[test]
 pub fn save_modified_world() -> Result<(), CVarError> {
+    let expected = include_str!("expected_cfg_1.toml").to_owned().replace("\r\n", "\n");
+
     let mut app = tests::make_test_app();
 
     {
@@ -41,7 +41,7 @@ pub fn save_modified_world() -> Result<(), CVarError> {
 
     let result = save_ctx.return_document();
 
-    assert_eq!(result.to_string(), EXPECTED_1);
+    assert_eq!(result.to_string(), expected);
 
     Ok(())
 }
@@ -49,7 +49,7 @@ pub fn save_modified_world() -> Result<(), CVarError> {
 #[test]
 pub fn save_over_existing_cfg() -> Result<(), CVarError> {
     const INITIAL: &str = include_str!("existing_cfg_1.toml");
-    const EXPECTED: &str = include_str!("expected_cfg_2.toml");
+    let expected = include_str!("expected_cfg_2.toml").to_owned().replace("\r\n", "\n");
     let mut app = tests::make_test_app();
 
     {
@@ -67,7 +67,7 @@ pub fn save_over_existing_cfg() -> Result<(), CVarError> {
 
     let result = save_ctx.return_document();
 
-    assert_eq!(result.to_string(), EXPECTED);
+    assert_eq!(result.to_string(), expected);
 
     Ok(())
 }
