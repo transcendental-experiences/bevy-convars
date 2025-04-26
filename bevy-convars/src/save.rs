@@ -53,10 +53,10 @@ impl CVarSaveContext {
     }
 
     fn get_cvar_entry(&mut self, path: &str) -> Result<toml_edit::Entry<'_>, CVarError> {
-        let sections = path.split('.');
+        let mut sections = path.split('.');
         let section_count = sections.clone().count();
         let leading_sections = sections.clone().take(section_count - 1);
-        let final_section = sections.last().unwrap();
+        let final_section = sections.next_back().unwrap();
 
         let mut cur_table = self.0.as_table_mut();
 
