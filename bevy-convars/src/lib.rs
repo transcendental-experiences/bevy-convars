@@ -11,7 +11,7 @@ use bevy_app::App;
 use bevy_app::prelude::*;
 use bevy_ecs::component::ComponentId;
 use bevy_ecs::prelude::*;
-use bevy_platform_support::collections::HashMap;
+use bevy_platform::collections::HashMap;
 use bevy_reflect::{TypeRegistration, prelude::*};
 #[cfg(feature = "config_loader")]
 use builtin::ConfigLoaderCVarsPlugin;
