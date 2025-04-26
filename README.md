@@ -76,7 +76,7 @@ Contributions are welcome!
 This library tracks Bevy's releases, at this time the following holds:
 | Bevy Version | bevy-convars Version |
 | ------------ | -------------------- |
-| 0.16.0-rc.4  | 0.1.0                |
+| 0.16.0       | 0.2.0                |
 
 ## License
 This work is available under EITHER the Apache 2.0 license (as provided in LICENSE-APACHE) or the MIT license (as provided in LICENSE-MIT).
