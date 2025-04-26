@@ -1,5 +1,5 @@
 # Bevy Convars
-![Crates.io Version](https://img.shields.io/crates/v/bevy-convars) ![docs.rs](https://img.shields.io/docsrs/bevy-convars)
+[![Crates.io Version](https://img.shields.io/crates/v/bevy-convars)](https://crates.io/crates/bevy-convars) [![docs.rs](https://img.shields.io/docsrs/bevy-convars)](https://docs.rs/bevy-convars/latest/bevy_convars/)
 
 This is a crate that provides an implementation of Convars (console variables or config variables depending on who you ask), provided as bevy resources, with support for serialization, change detection, and the works.
 Convars are presented as resources within the Bevy world, and can be accessed as such without any special code.
