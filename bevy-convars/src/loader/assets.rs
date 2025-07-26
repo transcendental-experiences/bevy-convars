@@ -22,7 +22,7 @@ impl ConfigLoader {
             .clone()
             .0;
 
-        self.apply(world, document)?;
+        self.apply(world, document, false)?;
 
         Ok(())
     }
@@ -50,12 +50,14 @@ impl AssetLoader for ConfigAssetLoader {
         load_context: &mut bevy_asset::LoadContext<'_>,
     ) -> Result<Self::Asset, Self::Error> {
         let mut buf = String::new();
-
         reader.read_to_string(&mut buf).await?;
-
         Ok(CVarConfig(DocumentContext::new(
             ImDocument::parse(buf)?,
             load_context.path().to_str().unwrap().to_owned(),
         )))
+    }
+
+    fn extensions(&self) -> &[&str] {
+        &["toml"]
     }
 }

@@ -13,8 +13,6 @@ use bevy_ecs::component::ComponentId;
 use bevy_ecs::prelude::*;
 use bevy_platform::collections::HashMap;
 use bevy_reflect::{TypeRegistration, prelude::*};
-#[cfg(feature = "config_loader")]
-use builtin::ConfigLoaderCVarsPlugin;
 use builtin::CoreCVarsPlugin;
 use builtin::LogCVarChanges;
 #[cfg(feature = "parse_cvars")]
@@ -39,6 +37,13 @@ pub mod parse;
 pub mod save;
 pub mod prelude;
 pub mod reflect;
+#[cfg(feature = "parse_cvars")]
+pub mod embed;
+
+// Macro re-export of toml_edit.
+#[doc(hidden)]
+#[cfg(feature = "parse_cvars")]
+pub use toml_edit as macro_toml_edit;
 
 #[cfg(test)]
 mod tests;
@@ -492,10 +497,6 @@ impl Plugin for CVarsPlugin {
 
         app.insert_resource::<CVarManagement>(CVarManagement::default());
         app.add_plugins(CoreCVarsPlugin);
-        #[cfg(feature = "config_loader")]
-        {
-            app.add_plugins(ConfigLoaderCVarsPlugin);
-        }
     }
 }
 

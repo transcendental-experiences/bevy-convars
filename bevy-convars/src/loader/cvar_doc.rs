@@ -7,6 +7,7 @@ pub(crate) type UnparsedCVar<'a> = (&'a str, Item);
 pub(crate) struct CVarDocScanner<S: AsRef<str>> {
     document: ImDocument<S>,
     source: String,
+    user_config: bool,
 }
 
 /// A toml document and it's associated source data
@@ -38,10 +39,11 @@ impl<S: AsRef<str>> DocumentContext<S> {
 }
 
 impl<S: AsRef<str>> CVarDocScanner<S> {
-    pub fn new(document: DocumentContext<S>) -> Self {
+    pub fn new(document: DocumentContext<S>, user_config: bool) -> Self {
         Self {
             document: document.document,
             source: document.source,
+            user_config: user_config,
         }
     }
 
@@ -55,7 +57,6 @@ impl<S: AsRef<str>> CVarDocScanner<S> {
     ) {
         for (key, node) in tree.children().unwrap() {
             // Check if the node key exists within the document we're traversing, and if so get the value.
-            println!("{key}");
             if let Some((_, value)) = item.get_key_value(key) {
                 if node.is_leaf() {
                     let CVarTreeNode::Leaf { name, reg } = node else {
@@ -64,7 +65,7 @@ impl<S: AsRef<str>> CVarDocScanner<S> {
 
                     let meta = management.resources[reg].data::<ReflectCVar>().unwrap();
 
-                    if meta.flags().contains(CVarFlags::SAVED) {
+                    if meta.flags().contains(CVarFlags::SAVED) || !self.user_config {
                         outp.push((*name, value.clone()));
                     } else {
                         bevy_log::warn!(

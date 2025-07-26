@@ -22,21 +22,3 @@ cvar_collection! {
 static_assertions::assert_impl_all!(CoreCVars: SystemParam);
 static_assertions::assert_impl_all!(CoreCVarsPlugin: Plugin);
 static_assertions::assert_impl_all!(LogCVarChanges: Resource, Deref<Target = bool>);
-
-#[cfg(feature = "config_loader")]
-use std::path::PathBuf;
-
-#[cfg(feature = "config_loader")]
-cvar_collection! {
-    /// Collection of config-loader related CVars you can use as a system parameter.
-    pub struct ConfigLoaderCVars & ConfigLoaderCVarsMut {
-        /// Names of configuration layer files to load in atop the default config.
-        /// # Remarks
-        /// Unlike basically all other CVars, this one cannot be set by file layers, because it defines them.
-        config_layers = cvar ConfigLayers("core.config_layers", CVarFlags::LOCAL): Vec<PathBuf> = vec![],
-    }
-
-    /// Plugin that handles registering all the config loader CVars.
-    #[doc(hidden)]
-    pub struct ConfigLoaderCVarsPlugin;
-}

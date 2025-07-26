@@ -75,13 +75,11 @@ user_data_directory.push("user_config.toml");
 
 let cvar_loader =
     CVarLoaderPluginBuilder::fancy()
-        // Load dev tooling config if we have them enabled.
-        .add_asset_layer_if(cfg!(feature = "dev_tools"), "dev_tools.toml")
         // And load the user's config file.
         .with_user_config_file(user_data_directory)
         .build();
 
-// Add the plugin, loading all layers and user configuration in one go.
+// Add the plugin, loading all user configuration in one go.
 app.add_plugins(cvar_loader);
 ```
 

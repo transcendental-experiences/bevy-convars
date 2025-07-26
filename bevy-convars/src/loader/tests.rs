@@ -22,7 +22,7 @@ pub fn parse_test_document() {
     let document = ImDocument::parse(TEST_DOCUMENT).unwrap();
     let document = DocumentContext::new(document, "test_document.toml".to_string());
 
-    let scanner = CVarDocScanner::new(document);
+    let scanner = CVarDocScanner::new(document, false);
 
     let cvars = scanner.find_cvars(app.world().resource::<CVarManagement>());
 
@@ -42,7 +42,7 @@ pub fn apply_test_document() -> Result<(), Box<dyn Error>> {
 
     let world = app.world_mut();
 
-    loader.apply(world, document)?;
+    loader.apply(world, document, false)?;
 
     assert_eq!(**world.resource::<TestInteger>(), 4);
 
