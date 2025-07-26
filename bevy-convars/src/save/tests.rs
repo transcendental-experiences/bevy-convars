@@ -43,10 +43,10 @@ pub fn save_modified_world() -> Result<(), CVarError> {
 
     // can't depend on exact file match here, no existing config.
     assert!(result.len() > 0);
-    assert!(result.contains("test_bool"))
-    assert!(result.contains("test_int"))
-    assert!(result.contains("true"))
-    assert!(result.contains("42"))
+    assert!(result.contains("test_bool"));
+    assert!(result.contains("test_int"));
+    assert!(result.contains("true"));
+    assert!(result.contains("42"));
 
     Ok(())
 }
